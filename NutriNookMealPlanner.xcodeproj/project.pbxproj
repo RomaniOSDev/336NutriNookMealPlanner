@@ -1,0 +1,509 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0473474039C965D6B81BEABC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F8C7FA73996EDD64B021A0 /* ContentView.swift */; };
+		097E8666058E78845B9D3497 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = E77EBBA7996C2873ABEF9176 /* Theme.swift */; };
+		09B9AA7CC8B155E3E26E13AA /* AppLinks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11DBF1F349B9EC81C57BC888 /* AppLinks.swift */; };
+		184E4B1F8CEE46B13B826339 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04FF0E19B45765FF1BDEF46 /* SceneDelegate.swift */; };
+		1B0F4637F3F42F537B1D9BE9 /* TimerStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE105026CD251CF17512DC88 /* TimerStudio.swift */; };
+		21389671955A9F5994304B22 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75AC97802647C21781F949A1 /* Models.swift */; };
+		2ADAA89F5FF74097BB3AF4B5 /* Store.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDD6FB042180C5DAAE1E5560 /* Store.swift */; };
+		3FCDBFF7925D9D140813C64E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7F0518EF27F8F35FA0AEFDE0 /* LaunchScreen.storyboard */; };
+		549BD990FD1A2914565F6C5F /* RecipeCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 142BCBD373A3E9C7E912D42A /* RecipeCatalog.swift */; };
+		5A8C3D19F0E2476B8D2A1C90 /* KitchenTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E9F5A18C6B34D80A7C1E4F2 /* KitchenTools.swift */; };
+		7B2E9D14A5C8436F8E1B0C92 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F8C1A92E6B0472D9C3E5A81 /* StatsView.swift */; };
+		8D1871F75BE06B8933D28980 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1C51723A40BCCF040406CC02 /* Main.storyboard */; };
+		8E87474C0FFB2842B38D3F2A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA9A73423698DB4338CDA039 /* AppDelegate.swift */; };
+		91F094FCF3554EBB5D3B0777 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4C20EB6BA5D0A71846960FE /* SettingsView.swift */; };
+		95C2014DF8B5EBCE633E9051 /* GroceryStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1DAA8A8E243926F5F4E560 /* GroceryStudio.swift */; };
+		9D4B7C21E8A0465B9F1D2E73 /* PlanStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C1A8E04B9D2471F8A3C5E90 /* PlanStudio.swift */; };
+		AEE26840E2318D4AE2FC52AE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2C44B440755B5EC6F4B55ACA /* PrivacyInfo.xcprivacy */; };
+		DAAF8BB245E1E87BD67402AB /* RecipeStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57A71F61DC5D7036F817235 /* RecipeStudio.swift */; };
+		F2CA63175FF87D1D9C4BB710 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 449B8B505D438C96C2A36ECF /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		11DBF1F349B9EC81C57BC888 /* AppLinks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLinks.swift; sourceTree = "<group>"; };
+		142BCBD373A3E9C7E912D42A /* RecipeCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeCatalog.swift; sourceTree = "<group>"; };
+		1C51723A40BCCF040406CC02 /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
+		1C9FC960F9767DC1DDB91C66 /* NutriNookMealPlanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NutriNookMealPlanner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C44B440755B5EC6F4B55ACA /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2E9F5A18C6B34D80A7C1E4F2 /* KitchenTools.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KitchenTools.swift; sourceTree = "<group>"; };
+		396ABB2931F68E8EF152750A /* Pods_NutriNookMealPlanner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_NutriNookMealPlanner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		449B8B505D438C96C2A36ECF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4F8C1A92E6B0472D9C3E5A81 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		6C1A8E04B9D2471F8A3C5E90 /* PlanStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanStudio.swift; sourceTree = "<group>"; };
+		75AC97802647C21781F949A1 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		7F0518EF27F8F35FA0AEFDE0 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		8F43EADDD398C520B363E039 /* Pods-NutriNookMealPlanner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NutriNookMealPlanner.release.xcconfig"; path = "Target Support Files/Pods-NutriNookMealPlanner/Pods-NutriNookMealPlanner.release.xcconfig"; sourceTree = "<group>"; };
+		AC1DAA8A8E243926F5F4E560 /* GroceryStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroceryStudio.swift; sourceTree = "<group>"; };
+		AE105026CD251CF17512DC88 /* TimerStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStudio.swift; sourceTree = "<group>"; };
+		B1F8C7FA73996EDD64B021A0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		B33F57B8C92C62342CB89FF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BDD6FB042180C5DAAE1E5560 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
+		C57A71F61DC5D7036F817235 /* RecipeStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStudio.swift; sourceTree = "<group>"; };
+		D04FF0E19B45765FF1BDEF46 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		D4C20EB6BA5D0A71846960FE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		E77EBBA7996C2873ABEF9176 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		E9EFDFB8DD26241989C5F19A /* Pods-NutriNookMealPlanner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NutriNookMealPlanner.debug.xcconfig"; path = "Target Support Files/Pods-NutriNookMealPlanner/Pods-NutriNookMealPlanner.debug.xcconfig"; sourceTree = "<group>"; };
+		FA9A73423698DB4338CDA039 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		02CE824B47952A2A11A56744 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1075E3E0A3A4DC4C8997C953 /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				BDD6FB042180C5DAAE1E5560 /* Store.swift */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		1BFA4F6E03453AFDC376ABBD /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				142BCBD373A3E9C7E912D42A /* RecipeCatalog.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		26C642BB4180B1E95062FF1D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1C9FC960F9767DC1DDB91C66 /* NutriNookMealPlanner.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		40D42D19D970D70B7F3B7A8D /* Navigation */ = {
+			isa = PBXGroup;
+			children = (
+				11DBF1F349B9EC81C57BC888 /* AppLinks.swift */,
+			);
+			path = Navigation;
+			sourceTree = "<group>";
+		};
+		5DF588D65F281FE18753BDAF /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				396ABB2931F68E8EF152750A /* Pods_NutriNookMealPlanner.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		6230C8DBA68E8B5B9646C017 = {
+			isa = PBXGroup;
+			children = (
+				DCAC9AB5653CA8519CA92E96 /* NutriNookMealPlanner */,
+				26C642BB4180B1E95062FF1D /* Products */,
+				81F659EC0F2814388E6ED8A7 /* Pods */,
+				5DF588D65F281FE18753BDAF /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		7F3B35063090679E7AE0CCDF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				449B8B505D438C96C2A36ECF /* Assets.xcassets */,
+				2C44B440755B5EC6F4B55ACA /* PrivacyInfo.xcprivacy */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		81F659EC0F2814388E6ED8A7 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E9EFDFB8DD26241989C5F19A /* Pods-NutriNookMealPlanner.debug.xcconfig */,
+				8F43EADDD398C520B363E039 /* Pods-NutriNookMealPlanner.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		91C01517A74203112A755583 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				E77EBBA7996C2873ABEF9176 /* Theme.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		9CD724843F430206B6F0EFD5 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				75AC97802647C21781F949A1 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A5E8E0205B28776E68F56D8C /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				B1F8C7FA73996EDD64B021A0 /* ContentView.swift */,
+				AC1DAA8A8E243926F5F4E560 /* GroceryStudio.swift */,
+				2E9F5A18C6B34D80A7C1E4F2 /* KitchenTools.swift */,
+				6C1A8E04B9D2471F8A3C5E90 /* PlanStudio.swift */,
+				C57A71F61DC5D7036F817235 /* RecipeStudio.swift */,
+				D4C20EB6BA5D0A71846960FE /* SettingsView.swift */,
+				4F8C1A92E6B0472D9C3E5A81 /* StatsView.swift */,
+				AE105026CD251CF17512DC88 /* TimerStudio.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		C0F985E0F1D5E9F5C2594056 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				FA9A73423698DB4338CDA039 /* AppDelegate.swift */,
+				B33F57B8C92C62342CB89FF3 /* Info.plist */,
+				7F0518EF27F8F35FA0AEFDE0 /* LaunchScreen.storyboard */,
+				1C51723A40BCCF040406CC02 /* Main.storyboard */,
+				D04FF0E19B45765FF1BDEF46 /* SceneDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		DCAC9AB5653CA8519CA92E96 /* NutriNookMealPlanner */ = {
+			isa = PBXGroup;
+			children = (
+				C0F985E0F1D5E9F5C2594056 /* App */,
+				1BFA4F6E03453AFDC376ABBD /* Data */,
+				9CD724843F430206B6F0EFD5 /* Models */,
+				40D42D19D970D70B7F3B7A8D /* Navigation */,
+				1075E3E0A3A4DC4C8997C953 /* Persistence */,
+				7F3B35063090679E7AE0CCDF /* Resources */,
+				91C01517A74203112A755583 /* Theme */,
+				A5E8E0205B28776E68F56D8C /* Views */,
+			);
+			path = NutriNookMealPlanner;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1DFC1BD6CA85D7BE80EAA7FB /* NutriNookMealPlanner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C337F5495514AB4A062B1F3E /* Build configuration list for PBXNativeTarget "NutriNookMealPlanner" */;
+			buildPhases = (
+				2645325197454BE12D9BB708 /* [CP] Check Pods Manifest.lock */,
+				69811DCBB523D7E0B6AF3917 /* Sources */,
+				02CE824B47952A2A11A56744 /* Frameworks */,
+				705ACC4B78418CBD0F6C7A34 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NutriNookMealPlanner;
+			productName = NutriNookMealPlanner;
+			productReference = 1C9FC960F9767DC1DDB91C66 /* NutriNookMealPlanner.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5E4C1FB6EDB5507D26E45FCA /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					1DFC1BD6CA85D7BE80EAA7FB = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 809EDBC94F5F454BF354C5A8 /* Build configuration list for PBXProject "NutriNookMealPlanner" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 6230C8DBA68E8B5B9646C017;
+			productRefGroup = 26C642BB4180B1E95062FF1D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1DFC1BD6CA85D7BE80EAA7FB /* NutriNookMealPlanner */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		705ACC4B78418CBD0F6C7A34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3FCDBFF7925D9D140813C64E /* LaunchScreen.storyboard in Resources */,
+				8D1871F75BE06B8933D28980 /* Main.storyboard in Resources */,
+				F2CA63175FF87D1D9C4BB710 /* Assets.xcassets in Resources */,
+				AEE26840E2318D4AE2FC52AE /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		2645325197454BE12D9BB708 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NutriNookMealPlanner-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		69811DCBB523D7E0B6AF3917 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8E87474C0FFB2842B38D3F2A /* AppDelegate.swift in Sources */,
+				184E4B1F8CEE46B13B826339 /* SceneDelegate.swift in Sources */,
+				549BD990FD1A2914565F6C5F /* RecipeCatalog.swift in Sources */,
+				21389671955A9F5994304B22 /* Models.swift in Sources */,
+				09B9AA7CC8B155E3E26E13AA /* AppLinks.swift in Sources */,
+				2ADAA89F5FF74097BB3AF4B5 /* Store.swift in Sources */,
+				097E8666058E78845B9D3497 /* Theme.swift in Sources */,
+				0473474039C965D6B81BEABC /* ContentView.swift in Sources */,
+				95C2014DF8B5EBCE633E9051 /* GroceryStudio.swift in Sources */,
+				DAAF8BB245E1E87BD67402AB /* RecipeStudio.swift in Sources */,
+				91F094FCF3554EBB5D3B0777 /* SettingsView.swift in Sources */,
+				7B2E9D14A5C8436F8E1B0C92 /* StatsView.swift in Sources */,
+				9D4B7C21E8A0465B9F1D2E73 /* PlanStudio.swift in Sources */,
+				5A8C3D19F0E2476B8D2A1C90 /* KitchenTools.swift in Sources */,
+				1B0F4637F3F42F537B1D9BE9 /* TimerStudio.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5A0670EB94BE6522585709C1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		71463499ABAA47F92C7C3854 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8F43EADDD398C520B363E039 /* Pods-NutriNookMealPlanner.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NutriNookMealPlanner/App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "NutriNook Meal Planner";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mil.n8tr1n00km35lpl8nn3r;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		7A1746089F222C766873137A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = E9EFDFB8DD26241989C5F19A /* Pods-NutriNookMealPlanner.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NutriNookMealPlanner/App/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "NutriNook Meal Planner";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mil.n8tr1n00km35lpl8nn3r;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		BD66BF035FECDEB14A6A2BF9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		809EDBC94F5F454BF354C5A8 /* Build configuration list for PBXProject "NutriNookMealPlanner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD66BF035FECDEB14A6A2BF9 /* Debug */,
+				5A0670EB94BE6522585709C1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C337F5495514AB4A062B1F3E /* Build configuration list for PBXNativeTarget "NutriNookMealPlanner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7A1746089F222C766873137A /* Debug */,
+				71463499ABAA47F92C7C3854 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 5E4C1FB6EDB5507D26E45FCA /* Project object */;
+}

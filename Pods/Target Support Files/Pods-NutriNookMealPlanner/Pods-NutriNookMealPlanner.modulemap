@@ -1,0 +1,6 @@
+framework module Pods_NutriNookMealPlanner {
+  umbrella header "Pods-NutriNookMealPlanner-umbrella.h"
+
+  export *
+  module * { export * }
+}
