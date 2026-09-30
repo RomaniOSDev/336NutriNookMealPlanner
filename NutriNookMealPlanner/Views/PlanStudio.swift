@@ -4,48 +4,67 @@ struct PlanStudio: View {
     @EnvironmentObject private var store: Store
     @State private var pickingDay: PlanWeekday?
     @State private var shopNote: String?
+    @State private var showMarket = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 14) {
-                    ForEach(PlanWeekday.allCases) { day in
-                        dayPlate(day)
-                    }
+            ZStack {
+                NookBackdrop()
+                ScrollView {
+                    VStack(spacing: 14) {
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("The week")
+                                .font(Theme.rounded(.title, weight: .bold))
+                            Text("Pin one weeknight dish per day, then copy only the missing items.")
+                                .font(Theme.rounded(.subheadline, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
 
-                    if let shopNote {
-                        Text(shopNote)
-                            .font(Theme.rounded(.subheadline, weight: .semibold))
-                            .foregroundStyle(.primary)
-                            .padding(12)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .background {
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .fill(Color("AppSurface"))
+                        ForEach(PlanWeekday.allCases) { day in
+                            dayPlate(day)
+                        }
+
+                        if let shopNote {
+                            Text(shopNote)
+                                .font(Theme.rounded(.subheadline, weight: .semibold))
+                                .foregroundStyle(.primary)
+                                .padding(12)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                        .fill(Color("AppSurface"))
+                                }
+                        }
+
+                        PlateActionButton(title: "Shop the missing items", symbol: "basket.fill") {
+                            store.addMissingIngredientsForWeek()
+                            shopNote = "Missing ingredients from the week landed on the list. Pantry and leftovers were skipped."
+                            showMarket = true
+                        }
+
+                        NavigationLink {
+                            GroceryStudio()
+                        } label: {
+                            HStack(spacing: 10) {
+                                Image(systemName: "list.bullet")
+                                Text("Open the pick-up list (\(store.groceryItems.filter { !$0.acquired }.count) left)")
                             }
+                            .font(Theme.rounded(.headline, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background { Capsule().fill(Color("AppSurface")) }
+                            .cheapPlateShadow()
+                        }
+                        .buttonStyle(.plain)
                     }
-
-                    PlateActionButton(title: "Shop the week", symbol: "basket.fill") {
-                        store.addMissingIngredientsForWeek()
-                        shopNote = "Missing ingredients from the week landed on the market list. Pantry staples were skipped."
-                    }
+                    .padding(.horizontal, 18)
+                    .padding(.top, 16)
+                    .padding(.bottom, Theme.dockClearance)
                 }
-                .padding(.horizontal, 18)
-                .padding(.top, 8)
-                .padding(.bottom, 28)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .kitchenClearChrome()
-            .background {
-                Color("AppBackground")
-                    .overlay {
-                        Image("BgKitchen")
-                            .resizable()
-                            .scaledToFill()
-                            .opacity(0.46)
-                    }
-                    .clipped()
-                    .ignoresSafeArea()
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -54,6 +73,17 @@ struct PlanStudio: View {
         .sheet(item: $pickingDay) { day in
             RecipePickSheet(day: day)
                 .environmentObject(store)
+        }
+        .sheet(isPresented: $showMarket) {
+            NavigationStack {
+                GroceryStudio()
+                    .environmentObject(store)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Close") { showMarket = false }
+                        }
+                    }
+            }
         }
     }
 
@@ -88,14 +118,14 @@ struct PlanStudio: View {
                     RecipeDetailView(recipe: recipe)
                 } label: {
                     HStack(spacing: 12) {
-                        Image(systemName: "fork.knife")
+                        Image(systemName: recipe.kind.symbol)
                             .font(.system(size: 20, weight: .semibold, design: .rounded))
                             .foregroundStyle(.primary)
                         VStack(alignment: .leading, spacing: 2) {
                             Text(recipe.title)
                                 .font(Theme.rounded(.body, weight: .semibold))
                                 .foregroundStyle(.primary)
-                            Text("\(recipe.minutes) min · \(recipe.cuisine.rawValue)")
+                            Text("\(recipe.minutes) min · \(recipe.kind.title)")
                                 .font(Theme.rounded(.caption, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
@@ -124,7 +154,7 @@ struct PlanStudio: View {
                             Text("Pin a dish")
                                 .font(Theme.rounded(.body, weight: .semibold))
                                 .foregroundStyle(.primary)
-                            Text("Tap to choose from the catalog")
+                            Text("Catalog or a dish you added")
                                 .font(Theme.rounded(.caption, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
@@ -161,7 +191,7 @@ struct RecipePickSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 10) {
-                    ForEach(RecipeCatalog.recipes) { recipe in
+                    ForEach(store.allRecipes) { recipe in
                         Button {
                             store.setPlan(recipe.id, day: day)
                             dismiss()
@@ -171,7 +201,7 @@ struct RecipePickSheet: View {
                                     Text(recipe.title)
                                         .font(Theme.rounded(.body, weight: .semibold))
                                         .foregroundStyle(.primary)
-                                    Text("\(recipe.cuisine.rawValue) · \(recipe.minutes) min")
+                                    Text("\(recipe.kind.title) · \(recipe.minutes) min")
                                         .font(Theme.rounded(.caption, weight: .medium))
                                         .foregroundStyle(.secondary)
                                 }

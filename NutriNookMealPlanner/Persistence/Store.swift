@@ -3,10 +3,10 @@ import UIKit
 
 @MainActor
 final class Store: ObservableObject {
-    @Published var station: KitchenStation = .recipes
+    @Published var station: KitchenStation = .today
+    @Published var dockHiddenCount = 0
     @Published var selectedTimerID: UUID?
     @Published var favorites: [String] = []
-    @Published var recentCuisineFilters: [String] = []
     @Published var groceryItems: [GroceryItem] = []
     @Published var preferredMeasurementUnits: String = "metric"
     @Published var timers: [CookTimer] = []
@@ -17,6 +17,8 @@ final class Store: ObservableObject {
     @Published var pantryKeys: [String] = []
     @Published var recipeNotes: [String: String] = [:]
     @Published var servings: Int = 4
+    @Published var customRecipes: [Recipe] = []
+    @Published var leftovers: [LeftoverItem] = []
 
     private let defaults = UserDefaults.standard
     private let encoder = JSONEncoder()
@@ -24,7 +26,6 @@ final class Store: ObservableObject {
 
     private enum Keys {
         static let favorites = "nook.favorites"
-        static let recentCuisineFilters = "nook.recentCuisineFilters"
         static let groceryItems = "nook.groceryItems"
         static let preferredMeasurementUnits = "nook.preferredMeasurementUnits"
         static let timers = "nook.timers"
@@ -34,11 +35,12 @@ final class Store: ObservableObject {
         static let pantryKeys = "nook.pantryKeys"
         static let recipeNotes = "nook.recipeNotes"
         static let servings = "nook.servings"
+        static let customRecipes = "nook.customRecipes"
+        static let leftovers = "nook.leftovers"
     }
 
     init() {
         favorites = decode([String].self, key: Keys.favorites, fallback: [])
-        recentCuisineFilters = decode([String].self, key: Keys.recentCuisineFilters, fallback: [])
         groceryItems = decode([GroceryItem].self, key: Keys.groceryItems, fallback: [])
         preferredMeasurementUnits = defaults.string(forKey: Keys.preferredMeasurementUnits) ?? "metric"
         timers = decode([CookTimer].self, key: Keys.timers, fallback: [])
@@ -51,8 +53,18 @@ final class Store: ObservableObject {
         recipeNotes = decode([String: String].self, key: Keys.recipeNotes, fallback: [:])
         let storedServings = defaults.integer(forKey: Keys.servings)
         servings = [2, 4, 6].contains(storedServings) ? storedServings : 4
+        customRecipes = decode([Recipe].self, key: Keys.customRecipes, fallback: [])
+        leftovers = decode([LeftoverItem].self, key: Keys.leftovers, fallback: [])
         freezeRunningTimers(at: Date())
         selectedTimerID = timers.first?.id
+    }
+
+    var allRecipes: [Recipe] {
+        customRecipes + RecipeCatalog.recipes
+    }
+
+    func recipe(id: String) -> Recipe? {
+        allRecipes.first { $0.id == id }
     }
 
     func recordActivity() {
@@ -78,16 +90,6 @@ final class Store: ObservableObject {
         recordActivity()
     }
 
-    func recordCuisineFilter(_ cuisine: String) {
-        recentCuisineFilters.removeAll { $0 == cuisine }
-        recentCuisineFilters.insert(cuisine, at: 0)
-        if recentCuisineFilters.count > 8 {
-            recentCuisineFilters = Array(recentCuisineFilters.prefix(8))
-        }
-        persist(recentCuisineFilters, key: Keys.recentCuisineFilters)
-        recordActivity()
-    }
-
     func addMissingIngredients(from recipe: Recipe) {
         var existing = Set(groceryItems.map { normalizedName($0.name) })
         var added = false
@@ -95,6 +97,7 @@ final class Store: ObservableObject {
             let key = normalizedName(ingredient.name)
             if existing.contains(key) { continue }
             if isInPantry(ingredient.name) { continue }
+            if isOnHand(ingredient.name) { continue }
             groceryItems.append(
                 GroceryItem(
                     name: listedName(for: ingredient),
@@ -113,9 +116,32 @@ final class Store: ObservableObject {
         }
     }
 
+    func addMissingList(_ ingredients: [Ingredient], recipeID: String) {
+        var existing = Set(groceryItems.map { normalizedName($0.name) })
+        var added = false
+        for ingredient in ingredients {
+            let key = normalizedName(ingredient.name)
+            if existing.contains(key) { continue }
+            groceryItems.append(
+                GroceryItem(
+                    name: listedName(for: ingredient),
+                    category: ingredient.category,
+                    acquired: false,
+                    recipeId: recipeID
+                )
+            )
+            existing.insert(key)
+            added = true
+        }
+        if added {
+            persist(groceryItems, key: Keys.groceryItems)
+            recordActivity()
+        }
+    }
+
     func addMissingIngredientsForWeek() {
         for recipeID in mealPlan.values {
-            if let recipe = RecipeCatalog.recipe(id: recipeID) {
+            if let recipe = recipe(id: recipeID) {
                 addMissingIngredients(from: recipe)
             }
         }
@@ -182,13 +208,13 @@ final class Store: ObservableObject {
     }
 
     func isInPantry(_ name: String) -> Bool {
-        pantryKeys.contains(normalizedName(name))
+        pantryKeys.contains { RecipeCatalog.namesOverlap($0, name) }
     }
 
     func togglePantry(_ name: String) {
         let key = normalizedName(name)
         guard !key.isEmpty else { return }
-        if let index = pantryKeys.firstIndex(of: key) {
+        if let index = pantryKeys.firstIndex(where: { RecipeCatalog.namesOverlap($0, name) }) {
             pantryKeys.remove(at: index)
         } else {
             pantryKeys.insert(key, at: 0)
@@ -199,7 +225,8 @@ final class Store: ObservableObject {
 
     func addPantry(_ name: String) {
         let key = normalizedName(name)
-        guard !key.isEmpty, !pantryKeys.contains(key) else { return }
+        guard !key.isEmpty else { return }
+        if pantryKeys.contains(where: { RecipeCatalog.namesOverlap($0, name) }) { return }
         pantryKeys.insert(key, at: 0)
         persist(pantryKeys, key: Keys.pantryKeys)
         recordActivity()
@@ -228,7 +255,7 @@ final class Store: ObservableObject {
 
     func plannedRecipe(on day: PlanWeekday) -> Recipe? {
         guard let id = mealPlan[day.rawValue] else { return nil }
-        return RecipeCatalog.recipe(id: id)
+        return recipe(id: id)
     }
 
     func setPlan(_ recipeID: String?, day: PlanWeekday) {
@@ -241,43 +268,112 @@ final class Store: ObservableObject {
         recordActivity()
     }
 
+    func activeLeftovers() -> [LeftoverItem] {
+        leftovers.filter { !$0.used }
+    }
+
+    func saveLeftovers(names: [String], from recipe: Recipe) {
+        let trimmed = names.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
+        guard !trimmed.isEmpty else { return }
+        for name in trimmed {
+            leftovers.insert(
+                LeftoverItem(name: name, fromRecipeID: recipe.id),
+                at: 0
+            )
+        }
+        persist(leftovers, key: Keys.leftovers)
+        recordActivity()
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    func markLeftoverUsed(_ id: UUID) {
+        guard let index = leftovers.firstIndex(where: { $0.id == id }) else { return }
+        leftovers[index].used = true
+        persist(leftovers, key: Keys.leftovers)
+        recordActivity()
+    }
+
+    func removeLeftover(_ id: UUID) {
+        leftovers.removeAll { $0.id == id }
+        persist(leftovers, key: Keys.leftovers)
+        recordActivity()
+    }
+
+    func upsertCustomRecipe(_ recipe: Recipe) {
+        if let index = customRecipes.firstIndex(where: { $0.id == recipe.id }) {
+            customRecipes[index] = recipe
+        } else {
+            customRecipes.insert(recipe, at: 0)
+        }
+        persist(customRecipes, key: Keys.customRecipes)
+        recordActivity()
+    }
+
+    func deleteCustomRecipe(_ id: String) {
+        customRecipes.removeAll { $0.id == id }
+        favorites.removeAll { $0 == id }
+        mealPlan = mealPlan.filter { $0.value != id }
+        persist(customRecipes, key: Keys.customRecipes)
+        persist(favorites, key: Keys.favorites)
+        persist(mealPlan, key: Keys.mealPlan)
+        recordActivity()
+    }
+
     func onHandKeys() -> Set<String> {
-        var keys = Set(pantryKeys)
+        var keys = Set<String>()
+        for name in pantryKeys {
+            keys.formUnion(RecipeCatalog.expandKeys(name))
+        }
         for item in groceryItems where item.acquired {
-            keys.insert(normalizedName(item.name))
+            keys.formUnion(RecipeCatalog.expandKeys(item.name))
+        }
+        for leftover in leftovers where !leftover.used {
+            keys.formUnion(RecipeCatalog.expandKeys(leftover.name))
         }
         return keys
     }
 
-    func recipesFromStock() -> [(Recipe, Int)] {
-        let onHand = onHandKeys()
-        return RecipeCatalog.recipes
-            .map { recipe -> (Recipe, Int) in
-                let hits = recipe.ingredients.filter { onHand.contains(normalizedName($0.name)) }.count
-                return (recipe, hits)
+    func isOnHand(_ name: String) -> Bool {
+        let needed = RecipeCatalog.expandKeys(name)
+        return !needed.isDisjoint(with: onHandKeys())
+    }
+
+    func pantryMatch(for recipe: Recipe) -> PantryMatch {
+        var have: [Ingredient] = []
+        var missing: [Ingredient] = []
+        for ingredient in recipe.ingredients {
+            if isOnHand(ingredient.name) {
+                have.append(ingredient)
+            } else {
+                missing.append(ingredient)
             }
-            .filter { $0.1 > 0 }
+        }
+        return PantryMatch(recipe: recipe, have: have, missing: missing)
+    }
+
+    func pantryMatches() -> [PantryMatch] {
+        allRecipes
+            .map { pantryMatch(for: $0) }
+            .filter { $0.have.count > 0 }
             .sorted { lhs, rhs in
-                if lhs.1 != rhs.1 { return lhs.1 > rhs.1 }
-                return lhs.0.minutes < rhs.0.minutes
+                if lhs.percent != rhs.percent { return lhs.percent > rhs.percent }
+                if lhs.missing.count != rhs.missing.count { return lhs.missing.count < rhs.missing.count }
+                return lhs.recipe.minutes < rhs.recipe.minutes
             }
     }
 
-    func randomDinner(filters: DinnerFilters, preferSaved: Bool) -> Recipe? {
-        var pool = RecipeCatalog.recipes
-        if preferSaved, !favorites.isEmpty {
-            pool = pool.filter { favorites.contains($0.id) }
-        }
-        pool = pool.filter { recipe in
-            if filters.quick && recipe.minutes > 30 { return false }
-            if filters.vegetarian && !recipe.vegetarian { return false }
-            if filters.glutenFree && !recipe.glutenFree { return false }
-            return true
-        }
-        if pool.isEmpty, preferSaved {
-            return randomDinner(filters: filters, preferSaved: false)
-        }
-        return pool.randomElement()
+    func leftoverMatches() -> [PantryMatch] {
+        let leftoverNames = leftovers.filter { !$0.used }.map(\.name)
+        guard !leftoverNames.isEmpty else { return [] }
+        return allRecipes
+            .map { pantryMatch(for: $0) }
+            .filter { match in
+                leftoverNames.contains { leftover in
+                    match.recipe.ingredients.contains { RecipeCatalog.namesOverlap($0.name, leftover) }
+                        || match.recipe.leftoverHints.contains { RecipeCatalog.namesOverlap($0, leftover) }
+                }
+            }
+            .sorted { $0.percent > $1.percent }
     }
 
     func stepMinutes(for recipe: Recipe) -> Int {
@@ -295,17 +391,9 @@ final class Store: ObservableObject {
         )
         timers.insert(timer, at: 0)
         selectedTimerID = timer.id
-        station = .timers
         persist(timers, key: Keys.timers)
         recordActivity()
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-    }
-
-    func addManualTimer(dishName: String, minutes: Int) -> Bool {
-        let trimmed = dishName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, minutes > 0 else { return false }
-        startCookTimer(dishName: trimmed, minutes: minutes)
-        return true
     }
 
     func pauseTimer(_ id: UUID, at now: Date = Date()) {
@@ -388,9 +476,13 @@ final class Store: ObservableObject {
         return timers.first
     }
 
+    func markCookFinished(recipe: Recipe) {
+        bumpDayLog(cooks: 1, minutes: recipe.minutes)
+        recordActivity()
+    }
+
     func resetAllData() {
         favorites = []
-        recentCuisineFilters = []
         groceryItems = []
         preferredMeasurementUnits = "metric"
         timers = []
@@ -402,10 +494,12 @@ final class Store: ObservableObject {
         pantryKeys = []
         recipeNotes = [:]
         servings = 4
-        station = .recipes
+        customRecipes = []
+        leftovers = []
+        station = .today
+        dockHiddenCount = 0
 
         defaults.removeObject(forKey: Keys.favorites)
-        defaults.removeObject(forKey: Keys.recentCuisineFilters)
         defaults.removeObject(forKey: Keys.groceryItems)
         defaults.removeObject(forKey: Keys.preferredMeasurementUnits)
         defaults.removeObject(forKey: Keys.timers)
@@ -415,6 +509,8 @@ final class Store: ObservableObject {
         defaults.removeObject(forKey: Keys.pantryKeys)
         defaults.removeObject(forKey: Keys.recipeNotes)
         defaults.removeObject(forKey: Keys.servings)
+        defaults.removeObject(forKey: Keys.customRecipes)
+        defaults.removeObject(forKey: Keys.leftovers)
 
         NotificationCenter.default.post(name: Notification.Name("dataReset"), object: nil)
     }
@@ -459,7 +555,7 @@ final class Store: ObservableObject {
         return formatter.string(from: date)
     }
 
-    private func listedName(for ingredient: Ingredient) -> String {
+    func listedName(for ingredient: Ingredient) -> String {
         let quantity = KitchenUnits.display(
             ingredient.quantity,
             preference: preferredMeasurementUnits,
@@ -468,12 +564,12 @@ final class Store: ObservableObject {
         return "\(ingredient.name) — \(quantity)"
     }
 
-    private func normalizedName(_ name: String) -> String {
+    func normalizedName(_ name: String) -> String {
         let base = name.split(separator: "—").first.map(String.init) ?? name
         return base.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
-    private func persist<T: Encodable>(_ value: T, key: String) {
+    private func persist<T: Encodable>(_ value: T, key: String) -> Void {
         if let data = try? encoder.encode(value) {
             defaults.set(data, forKey: key)
         }

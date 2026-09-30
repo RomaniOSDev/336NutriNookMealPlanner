@@ -1,312 +1,176 @@
 import SwiftUI
 
-struct TimerStudio: View {
+struct DecoderStudio: View {
     @EnvironmentObject private var store: Store
-    @State private var showAddSheet = false
+    @State private var query = ""
+    @State private var selected: DecoderEntry?
 
-    var body: some View {
-        Group {
-            if store.timers.isEmpty {
-                KitchenEmptyState(
-                    symbol: "clock.fill",
-                    message: "Start your culinary journey by adding your first timer"
-                )
-            } else {
-                TimelineView(.periodic(from: .now, by: 0.25)) { timeline in
-                    timerBoard(now: timeline.date)
-                }
-            }
-        }
-        .overlay(alignment: .bottomTrailing) {
-            addPlate
-        }
-        .sheet(isPresented: $showAddSheet) {
-            AddTimerSheet()
-                .environmentObject(store)
-        }
+    private var filtered: [DecoderEntry] {
+        let needle = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if needle.isEmpty { return RecipeCatalog.decoderEntries }
+        return RecipeCatalog.decoderEntries.filter { $0.searchBlob.contains(needle) }
     }
-
-    private func timerBoard(now: Date) -> some View {
-        ScrollView {
-            VStack(spacing: 22) {
-                if let timer = store.selectedTimer() {
-                    analogRing(timer, now: now)
-                    controls(for: timer, now: now)
-                }
-
-                if store.timers.count > 1 {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text("Other stations")
-                            .font(Theme.rounded(.headline, weight: .bold))
-                            .padding(.horizontal, 4)
-                        ForEach(store.timers.filter { $0.id != store.selectedTimer()?.id }) { timer in
-                            miniPlate(timer, now: now)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 96)
-        }
-    }
-
-    private func analogRing(_ timer: CookTimer, now: Date) -> some View {
-        let left = timer.displayedRemaining(at: now)
-        let progress = timer.duration > 0 ? min(1, max(0, 1 - (left / timer.duration))) : 0
-
-        return VStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(Color("AppSurface"))
-                    .cheapPlateShadow()
-
-                Circle()
-                    .stroke(Color("AppBackground").opacity(0.9), lineWidth: 18)
-
-                Circle()
-                    .trim(from: 0, to: CGFloat(progress))
-                    .stroke(
-                        Theme.ringFill,
-                        style: StrokeStyle(lineWidth: 18, lineCap: .round)
-                    )
-                    .rotationEffect(.degrees(-90))
-
-                VStack(spacing: 6) {
-                    Text(timer.dishName)
-                        .font(Theme.rounded(.headline, weight: .bold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .padding(.horizontal, 28)
-                    Text(timeString(left))
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(.primary)
-                    Text(timer.isRunning ? "On the stove" : (left <= 0 ? "Ready" : "Paused"))
-                        .font(Theme.rounded(.caption, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .frame(width: 268, height: 268)
-            .padding(.top, 8)
-        }
-        .frame(maxWidth: .infinity)
-    }
-
-    private func controls(for timer: CookTimer, now: Date) -> some View {
-        HStack(spacing: 16) {
-            Button {
-                store.toggleTimer(timer.id, at: now)
-            } label: {
-                controlPlate(
-                    symbol: timer.isRunning ? "pause.fill" : "play.fill",
-                    title: timer.isRunning ? "Pause" : "Resume"
-                )
-            }
-            .buttonStyle(.plain)
-            .disabled(timer.displayedRemaining(at: now) <= 0)
-            .opacity(timer.displayedRemaining(at: now) <= 0 ? 0.45 : 1)
-
-            Button {
-                store.deleteTimer(timer.id)
-            } label: {
-                controlPlate(symbol: "trash.fill", title: "Clear")
-            }
-            .buttonStyle(.plain)
-        }
-    }
-
-    private func controlPlate(symbol: String, title: String) -> some View {
-        VStack(spacing: 8) {
-            ZStack {
-                Circle().fill(Theme.plateFill)
-                Image(systemName: symbol)
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.primary)
-            }
-            .frame(width: 54, height: 54)
-            .cheapPlateShadow()
-            Text(title)
-                .font(Theme.rounded(.caption, weight: .semibold))
-                .foregroundStyle(.primary)
-        }
-        .frame(minWidth: 88, minHeight: 44)
-    }
-
-    private func miniPlate(_ timer: CookTimer, now: Date) -> some View {
-        let left = timer.displayedRemaining(at: now)
-        let progress = timer.duration > 0 ? min(1, max(0, 1 - (left / timer.duration))) : 0
-
-        return HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .stroke(Color("AppBackground"), lineWidth: 6)
-                Circle()
-                    .trim(from: 0, to: CGFloat(progress))
-                    .stroke(Theme.plateFill, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                    .rotationEffect(.degrees(-90))
-            }
-            .frame(width: 44, height: 44)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(timer.dishName)
-                    .font(Theme.rounded(.body, weight: .semibold))
-                    .foregroundStyle(.primary)
-                Text(timeString(left))
-                    .font(Theme.rounded(.caption, weight: .medium))
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            Button {
-                store.toggleTimer(timer.id, at: now)
-            } label: {
-                Image(systemName: timer.isRunning ? "pause.circle.fill" : "play.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(Color("AppPrimary"))
-            }
-            .buttonStyle(.plain)
-            .frame(width: 44, height: 44)
-            .accessibilityLabel(timer.isRunning ? "Pause" : "Resume")
-
-            Button {
-                store.deleteTimer(timer.id)
-            } label: {
-                Image(systemName: "trash.circle.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(Color("AppPrimary"))
-            }
-            .buttonStyle(.plain)
-            .frame(width: 44, height: 44)
-            .accessibilityLabel("Clear timer")
-        }
-        .padding(12)
-        .background {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color("AppSurface"))
-        }
-        .cheapPlateShadow()
-        .contentShape(Rectangle())
-        .onTapGesture {
-            store.selectedTimerID = timer.id
-        }
-    }
-
-    private var addPlate: some View {
-        Button {
-            showAddSheet = true
-        } label: {
-            ZStack {
-                Circle()
-                    .fill(Color("AppPrimary").opacity(0.25))
-                    .offset(y: 5)
-                Circle()
-                    .fill(Theme.plateFill)
-                Image(systemName: "plus")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
-            }
-            .frame(width: 56, height: 56)
-            .cheapPlateShadow()
-        }
-        .buttonStyle(.plain)
-        .padding(.trailing, 22)
-        .padding(.bottom, 18)
-        .accessibilityLabel("Add cook timer")
-    }
-
-    private func timeString(_ interval: TimeInterval) -> String {
-        let total = max(0, Int(interval.rounded()))
-        let minutes = total / 60
-        let seconds = total % 60
-        return String(format: "%d:%02d", minutes, seconds)
-    }
-}
-
-struct AddTimerSheet: View {
-    @EnvironmentObject private var store: Store
-    @Environment(\.dismiss) private var dismiss
-    @State private var dishName = ""
-    @State private var minutes = 20
-    @State private var showValidation = false
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Dish name")
-                    .font(Theme.rounded(.headline, weight: .bold))
-                TextField("What is on the stove?", text: $dishName)
-                    .font(Theme.rounded(.body))
-                    .padding(12)
-                    .background {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color("AppSurface"))
+            ZStack {
+                NookBackdrop()
+                VStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Ingredient decoder")
+                            .font(Theme.rounded(.title, weight: .bold))
+                        Text("Type 味噌, gochugaru, or wakame. Get the English, a swap, and dishes that use it.")
+                            .font(Theme.rounded(.subheadline, weight: .medium))
+                            .foregroundStyle(.secondary)
                     }
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .stroke(showValidation ? Color("AppPrimary") : Color("AppPrimary").opacity(0.2), lineWidth: showValidation ? 2 : 1)
-                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 20)
 
-                if showValidation {
-                    Text("Name the dish and keep the time above zero.")
-                        .font(Theme.rounded(.caption, weight: .semibold))
-                        .foregroundStyle(.primary)
-                }
-
-                Text("Minutes")
-                    .font(Theme.rounded(.headline, weight: .bold))
-                Stepper(value: $minutes, in: 1...180) {
-                    Text("\(minutes) min")
-                        .font(Theme.rounded(.title3, weight: .bold))
-                        .foregroundStyle(.primary)
-                }
-                .padding(12)
-                .background {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color("AppSurface"))
-                }
-
-                Text("Presets")
-                    .font(Theme.rounded(.headline, weight: .bold))
-                ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(TimerPreset.all) { preset in
-                            KitchenChip(
-                                title: "\(preset.name) \(preset.minutes)",
-                                isSelected: dishName == preset.name && minutes == preset.minutes
-                            ) {
-                                dishName = preset.name
-                                minutes = preset.minutes
-                                showValidation = false
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                        TextField("Foreign word or English name", text: $query)
+                            .font(Theme.rounded(.body))
+                            .textInputAutocapitalization(.never)
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background { Capsule().fill(Color("AppSurface")) }
+                    .padding(.horizontal, 20)
+
+                    if filtered.isEmpty {
+                        KitchenEmptyState(symbol: "book.fill", message: "Nothing matches. Try miso, 醤油, doenjang, or daikon.")
+                    } else {
+                        ScrollView {
+                            VStack(spacing: 10) {
+                                ForEach(filtered) { entry in
+                                    Button {
+                                        selected = entry
+                                    } label: {
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text(entry.native)
+                                                    .font(Theme.rounded(.title3, weight: .bold))
+                                                    .foregroundStyle(.primary)
+                                                Text(entry.english)
+                                                    .font(Theme.rounded(.subheadline, weight: .medium))
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                            Spacer()
+                                            Image(systemName: store.isInPantry(entry.native) ? "checkmark.circle.fill" : "circle")
+                                                .foregroundStyle(store.isInPantry(entry.native) ? Color("AppAccent") : Color("AppPrimary"))
+                                        }
+                                        .padding(14)
+                                        .background {
+                                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                                .fill(Color("AppSurface").opacity(0.94))
+                                        }
+                                        .cheapPlateShadow()
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, Theme.dockClearance)
+                        }
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                    }
+                }
+                .padding(.top, 16)
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .sheet(item: $selected) { entry in
+                DecoderDetailSheet(entry: entry)
+                    .environmentObject(store)
+            }
+        }
+        .background(Color.clear)
+        .background(KitchenClearHost())
+    }
+}
+
+struct DecoderDetailSheet: View {
+    @EnvironmentObject private var store: Store
+    @Environment(\.dismiss) private var dismiss
+    let entry: DecoderEntry
+
+    private var dishes: [Recipe] {
+        store.allRecipes.filter { recipe in
+            recipe.ingredients.contains { RecipeCatalog.namesOverlap($0.name, entry.native) }
+                || RecipeCatalog.recipesContaining(entry).contains(where: { $0.id == recipe.id })
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                NookBackdrop()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(entry.native)
+                            .font(Theme.rounded(.largeTitle, weight: .bold))
+                        Text(entry.english)
+                            .font(Theme.rounded(.title3, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        Text(entry.meaning)
+                            .font(Theme.rounded(.body))
+                        SurfaceCard {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text("If the shop doesn’t have it")
+                                    .font(Theme.rounded(.headline, weight: .bold))
+                                Text(entry.substitution)
+                                    .font(Theme.rounded(.subheadline))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        PlateActionButton(
+                            title: store.isInPantry(entry.native) ? "On the shelf — tap to remove" : "I have this at home",
+                            symbol: store.isInPantry(entry.native) ? "checkmark.circle.fill" : "plus.circle.fill"
+                        ) {
+                            store.togglePantry(entry.native)
+                        }
+
+                        Text("Dishes that use it")
+                            .font(Theme.rounded(.headline, weight: .bold))
+                        if dishes.isEmpty {
+                            Text("No catalog dish lists this yet.")
+                                .font(Theme.rounded(.subheadline))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            ForEach(dishes) { recipe in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(recipe.title)
+                                            .font(Theme.rounded(.body, weight: .semibold))
+                                        Text("\(recipe.kind.title) · \(recipe.minutes) min")
+                                            .font(Theme.rounded(.caption, weight: .medium))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                }
+                                .padding(12)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color("AppSurface"))
+                                }
                             }
                         }
                     }
+                    .padding(20)
+                    .padding(.bottom, 28)
                 }
-
-                Spacer()
-
-                PlateActionButton(title: "Start timer", symbol: "timer") {
-                    if store.addManualTimer(dishName: dishName, minutes: minutes) {
-                        dismiss()
-                    } else {
-                        showValidation = true
-                    }
-                }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
-            .padding(20)
-            .contentShape(Rectangle())
-            .dismissKeyboardOnTap()
-            .scrollDismissesKeyboard(.immediately)
-            .kitchenCanvas()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("New cook timer")
+                    Text("Decoder")
                         .font(Theme.rounded(.headline, weight: .bold))
                 }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Close") { dismiss() }
                         .font(Theme.rounded(.body, weight: .semibold))
                 }
             }

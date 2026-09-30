@@ -2,6 +2,8 @@ import SwiftUI
 import UIKit
 
 enum Theme {
+    static let dockClearance: CGFloat = 108
+
     static let plateFill = LinearGradient(
         colors: [Color("AppPrimary"), Color("AppBackground")],
         startPoint: .topLeading,
@@ -30,16 +32,30 @@ struct KitchenCanvas: ViewModifier {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background {
-                Color("AppBackground")
-                    .overlay {
-                        Image("BgKitchen")
-                            .resizable()
-                            .scaledToFill()
-                            .opacity(0.46)
-                    }
-                    .clipped()
-                    .ignoresSafeArea()
+                NookBackdrop()
             }
+    }
+}
+
+struct NookBackdrop: View {
+    var body: some View {
+        Color("AppBackground")
+            .overlay {
+                GeometryReader { geo in
+                    ZStack {
+                        Circle()
+                            .fill(Color("AppPrimary").opacity(0.12))
+                            .frame(width: geo.size.width * 0.72)
+                            .offset(x: geo.size.width * 0.28, y: -geo.size.height * 0.12)
+                        Circle()
+                            .fill(Color("AppAccent").opacity(0.1))
+                            .frame(width: geo.size.width * 0.5)
+                            .offset(x: -geo.size.width * 0.22, y: geo.size.height * 0.38)
+                    }
+                }
+            }
+            .clipped()
+            .ignoresSafeArea()
     }
 }
 
@@ -88,6 +104,16 @@ struct DismissKeyboardOnTap: ViewModifier {
     }
 }
 
+struct HideAppDock: ViewModifier {
+    @EnvironmentObject private var store: Store
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear { store.dockHiddenCount += 1 }
+            .onDisappear { store.dockHiddenCount = max(0, store.dockHiddenCount - 1) }
+    }
+}
+
 extension View {
     func kitchenCanvas() -> some View {
         modifier(KitchenCanvas())
@@ -106,96 +132,9 @@ extension View {
     func dismissKeyboardOnTap() -> some View {
         modifier(DismissKeyboardOnTap())
     }
-}
 
-struct CookbookIndexTab: View {
-    let title: String
-    let isSelected: Bool
-    var tilt: Double = 0
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(Theme.rounded(.caption, weight: .bold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .padding(.horizontal, 8)
-                .padding(.top, 14)
-                .padding(.bottom, 18)
-                .background {
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: 14,
-                        bottomLeadingRadius: 0,
-                        bottomTrailingRadius: 0,
-                        topTrailingRadius: 18,
-                        style: .continuous
-                    )
-                    .fill(isSelected ? Theme.plateFill : LinearGradient(colors: [Color("AppSurface"), Color("AppSurface")], startPoint: .top, endPoint: .bottom))
-                }
-                .overlay(alignment: .top) {
-                    Capsule()
-                        .fill(Color("AppAccent").opacity(isSelected ? 0.95 : 0.35))
-                        .frame(width: 28, height: 6)
-                        .offset(y: -3)
-                }
-                .overlay {
-                    UnevenRoundedRectangle(
-                        topLeadingRadius: 14,
-                        bottomLeadingRadius: 0,
-                        bottomTrailingRadius: 0,
-                        topTrailingRadius: 18,
-                        style: .continuous
-                    )
-                    .stroke(isSelected ? Color("AppAccent") : Color("AppPrimary").opacity(0.28), lineWidth: isSelected ? 2 : 1)
-                }
-                .cheapPlateShadow()
-                .offset(y: isSelected ? 4 : 14)
-                .rotationEffect(.degrees(tilt))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .frame(minHeight: 44)
-    }
-}
-
-struct StationPlateButton: View {
-    let symbol: String
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                ZStack {
-                    Circle()
-                        .fill(Color("AppPrimary").opacity(0.22))
-                        .offset(y: 6)
-                    Circle()
-                        .fill(Theme.plateFill)
-                    Circle()
-                        .stroke(isSelected ? Color("AppAccent") : Color("AppSurface").opacity(0.55), lineWidth: isSelected ? 3 : 1)
-                    Image(systemName: symbol)
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.primary)
-                        .symbolRenderingMode(.monochrome)
-                }
-                .frame(width: 64, height: 64)
-                .cheapPlateShadow()
-
-                Text(title)
-                    .font(Theme.rounded(.caption, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-            .scaleEffect(isSelected ? 1.06 : 1.0)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .frame(minWidth: 44, minHeight: 44)
+    func hidesAppDock() -> some View {
+        modifier(HideAppDock())
     }
 }
 
@@ -283,12 +222,62 @@ struct PlateActionButton: View {
     }
 }
 
-struct WashiTape: View {
+struct SurfaceCard<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
     var body: some View {
-        Capsule()
-            .fill(Color("AppAccent").opacity(0.92))
-            .frame(width: 58, height: 14)
-            .rotationEffect(.degrees(-8))
+        content
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color("AppSurface").opacity(0.94))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color("AppPrimary").opacity(0.22), lineWidth: 1)
+            }
             .cheapPlateShadow()
+    }
+}
+
+struct DishKindBadge: View {
+    let kind: DishKind
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: kind.symbol)
+            Text(kind.title.uppercased())
+        }
+        .font(Theme.rounded(.caption, weight: .bold))
+        .foregroundStyle(.primary)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background {
+            Capsule().fill(Color("AppSurface").opacity(0.92))
+        }
+    }
+}
+
+struct PercentRing: View {
+    let percent: Int
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color("AppPrimary").opacity(0.22), lineWidth: 6)
+            Circle()
+                .trim(from: 0, to: CGFloat(min(max(percent, 0), 100)) / 100)
+                .stroke(Theme.ringFill, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text("\(percent)%")
+                .font(Theme.rounded(.caption, weight: .bold))
+                .foregroundStyle(.primary)
+        }
+        .frame(width: 52, height: 52)
     }
 }

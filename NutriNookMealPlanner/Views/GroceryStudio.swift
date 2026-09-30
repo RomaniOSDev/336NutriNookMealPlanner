@@ -7,11 +7,13 @@ struct GroceryStudio: View {
     @State private var forceExpand: Set<IngredientCategory> = []
 
     var body: some View {
-        Group {
+        ZStack {
+            NookBackdrop()
+            Group {
             if store.groceryItems.isEmpty {
                 KitchenEmptyState(
                     symbol: "cart.badge.plus",
-                    message: "No groceries yet! Start by exploring recipes."
+                    message: "No pick-up list yet. Cook from pantry, or copy missing items from the week."
                 )
             } else {
                 List {
@@ -23,7 +25,9 @@ struct GroceryStudio: View {
                 .kitchenClearChrome()
                 .scrollDismissesKeyboard(.immediately)
             }
+            }
         }
+        .hidesAppDock()
         .background(Color.clear)
         .overlay(alignment: .bottomLeading) {
             pantryPlate
@@ -34,7 +38,7 @@ struct GroceryStudio: View {
         .overlay(alignment: .bottom) {
             if store.undoGroceryID != nil {
                 undoBanner
-                    .padding(.bottom, 88)
+                    .padding(.bottom, 96)
             }
         }
         .sheet(isPresented: $showAddSheet) {
@@ -146,7 +150,7 @@ struct GroceryStudio: View {
                         .font(Theme.rounded(.body, weight: .semibold))
                         .foregroundStyle(.primary)
                         .strikethrough(item.acquired, color: Color("AppPrimary"))
-                    if let recipeId = item.recipeId, let recipe = RecipeCatalog.recipe(id: recipeId) {
+                    if let recipeId = item.recipeId, let recipe = store.recipe(id: recipeId) {
                         Text(recipe.title)
                             .font(Theme.rounded(.caption, weight: .medium))
                             .foregroundStyle(.secondary)

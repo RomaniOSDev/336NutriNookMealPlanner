@@ -3,43 +3,18 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var store = Store()
     @Environment(\.scenePhase) private var scenePhase
-    @State private var showSettings = false
-    @State private var cuisineFilter: String = "All"
-    @State private var searchText = ""
-    @State private var dinnerFilters = DinnerFilters()
     @State private var pendingRecipeID: String?
-    @State private var showTonight = false
-    @State private var showFromStock = false
 
     var body: some View {
         VStack(spacing: 0) {
-            cookbookIndex
-            if store.station == .recipes {
-                cuisineStrip
-            }
             stationWorkspace
+            if store.dockHiddenCount == 0 {
+                tonightDock
+            }
         }
         .dismissKeyboardOnTap()
         .scrollDismissesKeyboard(.immediately)
         .kitchenCanvas()
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-                .environmentObject(store)
-        }
-        .sheet(isPresented: $showTonight) {
-            TonightPickView(filters: dinnerFilters) { recipe in
-                store.station = .recipes
-                pendingRecipeID = recipe.id
-            }
-            .environmentObject(store)
-        }
-        .sheet(isPresented: $showFromStock) {
-            FromStockView { recipe in
-                store.station = .recipes
-                pendingRecipeID = recipe.id
-            }
-            .environmentObject(store)
-        }
         .environmentObject(store)
         .onChange(of: scenePhase) { phase in
             if phase != .active {
@@ -47,10 +22,6 @@ struct ContentView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("dataReset"))) { _ in
-            cuisineFilter = "All"
-            searchText = ""
-            dinnerFilters = DinnerFilters()
-            showSettings = false
             pendingRecipeID = nil
         }
         .overlay(alignment: .top) {
@@ -68,143 +39,320 @@ struct ContentView: View {
         }
     }
 
-    private var cookbookIndex: some View {
-        HStack(alignment: .bottom, spacing: -8) {
-            CookbookIndexTab(title: "Recipes", isSelected: store.station == .recipes, tilt: -3) {
-                withAnimation(.easeInOut(duration: 0.18)) { store.station = .recipes }
-            }
-            CookbookIndexTab(title: "Plan", isSelected: store.station == .plan, tilt: 1.5) {
-                withAnimation(.easeInOut(duration: 0.18)) { store.station = .plan }
-            }
-            CookbookIndexTab(title: "Market", isSelected: store.station == .market, tilt: 2) {
-                withAnimation(.easeInOut(duration: 0.18)) { store.station = .market }
-            }
-            CookbookIndexTab(title: "Timers", isSelected: store.station == .timers, tilt: -1.5) {
-                withAnimation(.easeInOut(duration: 0.18)) { store.station = .timers }
-            }
-            Spacer(minLength: 4)
-            Button {
-                showSettings = true
-            } label: {
-                Text("Desk")
-                    .font(Theme.rounded(.caption2, weight: .bold))
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 10)
-                    .background {
-                        Circle()
-                            .fill(Theme.warmFill)
-                    }
-                    .overlay {
-                        Circle()
-                            .stroke(Color("AppPrimary").opacity(0.4), lineWidth: 1)
-                    }
-                    .cheapPlateShadow()
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Settings")
-            .padding(.bottom, 6)
-        }
-        .padding(.horizontal, 8)
-        .padding(.top, 6)
-        .padding(.bottom, 2)
-    }
-
-    private var cuisineStrip: some View {
-        VStack(spacing: 10) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    KitchenChip(title: "All", isSelected: cuisineFilter == "All") {
-                        cuisineFilter = "All"
-                    }
-                    KitchenChip(title: "Saved", isSelected: cuisineFilter == "Saved") {
-                        cuisineFilter = "Saved"
-                    }
-                    ForEach(orderedCuisines) { cuisine in
-                        KitchenChip(title: cuisine.rawValue, isSelected: cuisineFilter == cuisine.rawValue) {
-                            cuisineFilter = cuisine.rawValue
-                            store.recordCuisineFilter(cuisine.rawValue)
-                        }
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 6)
-            }
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    KitchenChip(title: "Quick", isSelected: dinnerFilters.quick) {
-                        dinnerFilters.quick.toggle()
-                    }
-                    KitchenChip(title: "Veg", isSelected: dinnerFilters.vegetarian) {
-                        dinnerFilters.vegetarian.toggle()
-                    }
-                    KitchenChip(title: "GF", isSelected: dinnerFilters.glutenFree) {
-                        dinnerFilters.glutenFree.toggle()
-                    }
-                    KitchenChip(title: "Tonight", isSelected: false) {
-                        showTonight = true
-                    }
-                    KitchenChip(title: "From stock", isSelected: false) {
-                        showFromStock = true
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 2)
-            }
-
-            HStack(spacing: 10) {
-                Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.secondary)
-                TextField("Find a dish", text: $searchText)
-                    .font(Theme.rounded(.body))
-                    .foregroundStyle(.primary)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background {
-                Capsule()
-                    .fill(Color("AppSurface"))
-            }
-            .overlay {
-                Capsule()
-                    .stroke(Color("AppPrimary").opacity(0.28), lineWidth: 1)
-            }
-            .padding(.horizontal, 20)
-        }
-        .padding(.bottom, 8)
-    }
-
-    private var orderedCuisines: [Cuisine] {
-        var remaining = Cuisine.allCases
-        var ordered: [Cuisine] = []
-        for name in store.recentCuisineFilters {
-            if let match = remaining.first(where: { $0.rawValue == name }) {
-                ordered.append(match)
-                remaining.removeAll { $0 == match }
-            }
-        }
-        return ordered + remaining
-    }
-
     private var stationWorkspace: some View {
         Group {
             switch store.station {
-            case .recipes:
-                RecipeStudio(
-                    cuisineFilter: cuisineFilter,
-                    searchText: searchText,
-                    dinnerFilters: dinnerFilters,
-                    pendingRecipeID: $pendingRecipeID
-                )
-            case .plan:
+            case .today:
+                TonightHomeView(pendingRecipeID: $pendingRecipeID)
+            case .decoder:
+                DecoderStudio()
+            case .week:
                 PlanStudio()
-            case .market:
-                GroceryStudio()
-            case .timers:
-                TimerStudio()
+            case .desk:
+                SettingsView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var tonightDock: some View {
+        HStack(spacing: 0) {
+            ForEach(KitchenStation.allCases) { station in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.18)) {
+                        store.station = station
+                    }
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: station.symbol)
+                            .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        Text(station.title)
+                            .font(Theme.rounded(.caption2, weight: .bold))
+                    }
+                    .foregroundStyle(.primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background {
+                        Capsule()
+                            .fill(store.station == station ? Theme.plateFill : LinearGradient(colors: [Color.clear, Color.clear], startPoint: .top, endPoint: .bottom))
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(station.title)
+                .accessibilityAddTraits(store.station == station ? .isSelected : [])
+            }
+        }
+        .padding(6)
+        .background {
+            Capsule()
+                .fill(Color("AppSurface").opacity(0.96))
+        }
+        .overlay {
+            Capsule()
+                .stroke(Color("AppPrimary").opacity(0.28), lineWidth: 1)
+        }
+        .cheapPlateShadow()
+        .padding(.horizontal, 16)
+        .padding(.bottom, 10)
+        .padding(.top, 4)
+    }
+}
+
+struct TonightHomeView: View {
+    @EnvironmentObject private var store: Store
+    @Binding var pendingRecipeID: String?
+    @State private var showPantry = false
+    @State private var openedRecipe: Recipe?
+    @State private var showOpened = false
+
+    private var leftoverMatches: [PantryMatch] {
+        store.leftoverMatches()
+    }
+
+    private var pantryMatches: [PantryMatch] {
+        Array(store.pantryMatches().prefix(6))
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                NookBackdrop()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 18) {
+                        header
+                        todayPlan
+                        leftoversBlock
+                        fromPantryBlock
+                        catalogPeek
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 16)
+                    .padding(.bottom, Theme.dockClearance)
+                }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(isPresented: $showOpened) {
+                if let openedRecipe {
+                    RecipeDetailView(recipe: openedRecipe)
+                }
+            }
+            .onChange(of: pendingRecipeID) { _ in
+                openPending()
+            }
+            .onAppear { openPending() }
+            .sheet(isPresented: $showPantry) {
+                PantryBoardView()
+                    .environmentObject(store)
+            }
+        }
+        .background(Color.clear)
+        .background(KitchenClearHost())
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Tonight")
+                .font(Theme.rounded(.largeTitle, weight: .bold))
+                .foregroundStyle(.primary)
+            Text("Japanese–Korean weeknights from what you already have. Mark the pantry, then cook.")
+                .font(Theme.rounded(.subheadline, weight: .medium))
+                .foregroundStyle(.secondary)
+            HStack(spacing: 10) {
+                KitchenChip(title: "Pantry", isSelected: false) {
+                    showPantry = true
+                }
+                KitchenChip(title: "Decoder", isSelected: false) {
+                    store.station = .decoder
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var todayPlan: some View {
+        let today = store.plannedRecipe(on: .today)
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Pinned for today")
+                    .font(Theme.rounded(.headline, weight: .bold))
+                if let today {
+                    Button {
+                        open(today)
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(today.title)
+                                    .font(Theme.rounded(.body, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                Text("\(today.kind.title) · \(today.minutes) min")
+                                    .font(Theme.rounded(.caption, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Text("Nothing pinned. Match a dish from the pantry list, or set the week.")
+                        .font(Theme.rounded(.subheadline))
+                        .foregroundStyle(.secondary)
+                    Button("Open the week") { store.station = .week }
+                        .font(Theme.rounded(.subheadline, weight: .bold))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var leftoversBlock: some View {
+        let active = store.activeLeftovers()
+        SurfaceCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Tomorrow from leftovers")
+                    .font(Theme.rounded(.headline, weight: .bold))
+                if active.isEmpty {
+                    Text("After you cook, log what is left in the fridge. Tomorrow’s dish will show up here.")
+                        .font(Theme.rounded(.subheadline))
+                        .foregroundStyle(.secondary)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(active) { item in
+                                HStack(spacing: 6) {
+                                    Text(item.name)
+                                        .font(Theme.rounded(.caption, weight: .bold))
+                                    Button {
+                                        store.removeLeftover(item.id)
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.system(size: 14))
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background { Capsule().fill(Theme.warmFill) }
+                            }
+                        }
+                    }
+                    if leftoverMatches.isEmpty {
+                        Text("No catalog dish uses these leftovers yet. Add your own recipe on Desk.")
+                            .font(Theme.rounded(.caption, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(leftoverMatches.prefix(3)) { match in
+                            pantryRow(match, leftover: true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var fromPantryBlock: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Cook from what you have")
+                .font(Theme.rounded(.headline, weight: .bold))
+            if pantryMatches.isEmpty {
+                SurfaceCard {
+                    Text("Mark staples in Decoder or Pantry. Matches appear here with a percent and a short buy list.")
+                        .font(Theme.rounded(.subheadline))
+                        .foregroundStyle(.secondary)
+                }
+            } else {
+                ForEach(pantryMatches) { match in
+                    pantryRow(match, leftover: false)
+                }
+            }
+        }
+    }
+
+    private var catalogPeek: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Weeknight catalog")
+                .font(Theme.rounded(.headline, weight: .bold))
+            ForEach(store.allRecipes.prefix(4)) { recipe in
+                NavigationLink {
+                    RecipeDetailView(recipe: recipe)
+                } label: {
+                    DishLineCard(recipe: recipe, isFavorite: store.isFavorite(recipe.id))
+                }
+                .buttonStyle(.plain)
+            }
+            NavigationLink {
+                RecipeIndexView()
+            } label: {
+                Text("See every dish")
+                    .font(Theme.rounded(.subheadline, weight: .bold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background { Capsule().fill(Color("AppSurface")) }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    private func pantryRow(_ match: PantryMatch, leftover: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Button {
+                open(match.recipe)
+            } label: {
+                HStack(alignment: .center, spacing: 12) {
+                    PercentRing(percent: match.percent)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(match.recipe.title)
+                            .font(Theme.rounded(.body, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.leading)
+                        Text("\(match.have.count)/\(match.total) on hand · \(match.recipe.minutes) min")
+                            .font(Theme.rounded(.caption, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        if leftover, let foreign = match.recipe.foreignName {
+                            Text(foreign)
+                                .font(Theme.rounded(.caption2, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+
+            if !match.missing.isEmpty {
+                Text("Still buy: " + match.missing.map(\.name).joined(separator: ", "))
+                    .font(Theme.rounded(.caption, weight: .medium))
+                    .foregroundStyle(.secondary)
+                Button("Add \(match.missing.count) to the list") {
+                    store.addMissingList(match.missing, recipeID: match.recipe.id)
+                }
+                .font(Theme.rounded(.caption, weight: .bold))
+            } else {
+                Text("You can cook this without a shop run.")
+                    .font(Theme.rounded(.caption, weight: .bold))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color("AppSurface"))
+        }
+        .cheapPlateShadow()
+    }
+
+    private func open(_ recipe: Recipe) {
+        openedRecipe = recipe
+        showOpened = true
+    }
+
+    private func openPending() {
+        guard let id = pendingRecipeID, let recipe = store.recipe(id: id) else { return }
+        pendingRecipeID = nil
+        open(recipe)
     }
 }

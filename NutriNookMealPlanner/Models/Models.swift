@@ -1,37 +1,28 @@
 import Foundation
 
 enum KitchenStation: String, CaseIterable, Identifiable {
-    case recipes
-    case plan
-    case market
-    case timers
+    case today
+    case decoder
+    case week
+    case desk
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .recipes: return "Recipe Studio"
-        case .plan: return "Week Plan"
-        case .market: return "Market List"
-        case .timers: return "Cook Timers"
+        case .today: return "Tonight"
+        case .decoder: return "Decoder"
+        case .week: return "Week"
+        case .desk: return "Desk"
         }
     }
 
     var symbol: String {
         switch self {
-        case .recipes: return "fork.knife"
-        case .plan: return "calendar"
-        case .market: return "basket.fill"
-        case .timers: return "timer"
-        }
-    }
-
-    var dockLabel: String {
-        switch self {
-        case .recipes: return "Recipes"
-        case .plan: return "Plan"
-        case .market: return "Market"
-        case .timers: return "Timers"
+        case .today: return "moon.stars.fill"
+        case .decoder: return "book.fill"
+        case .week: return "calendar"
+        case .desk: return "slider.horizontal.3"
         }
     }
 }
@@ -60,61 +51,31 @@ enum PlanWeekday: String, CaseIterable, Identifiable, Codable {
     }
 }
 
-struct DinnerFilters: Equatable {
-    var quick = false
-    var vegetarian = false
-    var glutenFree = false
-}
-
-struct TimerPreset: Identifiable, Hashable {
-    var name: String
-    var minutes: Int
-    var id: String { name }
-
-    static let all: [TimerPreset] = [
-        TimerPreset(name: "Rice", minutes: 15),
-        TimerPreset(name: "Eggs", minutes: 7),
-        TimerPreset(name: "Pasta", minutes: 9),
-        TimerPreset(name: "Steam veg", minutes: 8),
-        TimerPreset(name: "Rest dough", minutes: 20)
-    ]
-}
-
-enum Cuisine: String, Codable, CaseIterable, Identifiable, Hashable {
-    case japanese = "Japanese"
-    case mexican = "Mexican"
-    case italian = "Italian"
-    case indian = "Indian"
-    case thai = "Thai"
-    case french = "French"
+enum DishKind: String, Codable, CaseIterable, Identifiable, Hashable {
+    case bowl
+    case skillet
+    case simmer
+    case cool
 
     var id: String { rawValue }
 
-    var bannerName: String {
+    var title: String {
         switch self {
-        case .japanese:
-            return "BannerRamen"
-        case .mexican:
-            return "BannerPrep"
-        case .indian:
-            return "BannerSpices"
-        case .thai:
-            return "BannerThai"
-        case .italian:
-            return "BannerPasta"
-        case .french:
-            return "BannerFrench"
+        case .bowl: return "Rice bowl"
+        case .skillet: return "Skillet"
+        case .simmer: return "Simmer"
+        case .cool: return "Cool plate"
         }
     }
-}
 
-enum IngredientCategory: String, Codable, CaseIterable, Identifiable, Hashable {
-    case produce = "Produce"
-    case spices = "Spices"
-    case proteins = "Proteins"
-    case pantry = "Pantry"
-
-    var id: String { rawValue }
+    var symbol: String {
+        switch self {
+        case .bowl: return "leaf.circle.fill"
+        case .skillet: return "flame.fill"
+        case .simmer: return "drop.fill"
+        case .cool: return "snowflake"
+        }
+    }
 }
 
 struct Ingredient: Codable, Identifiable, Hashable {
@@ -131,16 +92,53 @@ struct Ingredient: Codable, Identifiable, Hashable {
     }
 }
 
+enum IngredientCategory: String, Codable, CaseIterable, Identifiable, Hashable {
+    case produce = "Produce"
+    case spices = "Spices"
+    case proteins = "Proteins"
+    case pantry = "Pantry"
+
+    var id: String { rawValue }
+}
+
 struct Recipe: Codable, Identifiable, Hashable {
     var id: String
     var title: String
-    var cuisine: Cuisine
+    var kind: DishKind
     var minutes: Int
     var ingredients: [Ingredient]
     var steps: [String]
     var foreignName: String?
-    var vegetarian: Bool = false
-    var glutenFree: Bool = false
+    var vegetarian: Bool
+    var glutenFree: Bool
+    var leftoverHints: [String]
+    var isCustom: Bool
+
+    init(
+        id: String,
+        title: String,
+        kind: DishKind,
+        minutes: Int,
+        ingredients: [Ingredient],
+        steps: [String],
+        foreignName: String? = nil,
+        vegetarian: Bool = false,
+        glutenFree: Bool = false,
+        leftoverHints: [String] = [],
+        isCustom: Bool = false
+    ) {
+        self.id = id
+        self.title = title
+        self.kind = kind
+        self.minutes = minutes
+        self.ingredients = ingredients
+        self.steps = steps
+        self.foreignName = foreignName
+        self.vegetarian = vegetarian
+        self.glutenFree = glutenFree
+        self.leftoverHints = leftoverHints
+        self.isCustom = isCustom
+    }
 }
 
 struct GroceryItem: Codable, Identifiable, Equatable {
@@ -203,12 +201,52 @@ struct CookTimer: Codable, Identifiable, Equatable {
         guard isRunning, let startedAt else { return max(0, remaining) }
         return max(0, remaining - now.timeIntervalSince(startedAt))
     }
+}
 
-    var progress: Double {
-        guard duration > 0 else { return 0 }
-        let left = displayedRemaining(at: Date())
-        return min(1, max(0, 1 - (left / duration)))
+struct LeftoverItem: Codable, Identifiable, Equatable {
+    var id: UUID
+    var name: String
+    var fromRecipeID: String?
+    var createdAt: Date
+    var used: Bool
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        fromRecipeID: String? = nil,
+        createdAt: Date = Date(),
+        used: Bool = false
+    ) {
+        self.id = id
+        self.name = name
+        self.fromRecipeID = fromRecipeID
+        self.createdAt = createdAt
+        self.used = used
     }
+}
+
+struct DecoderEntry: Identifiable, Hashable {
+    var native: String
+    var english: String
+    var meaning: String
+    var substitution: String
+
+    var id: String { native }
+
+    var searchBlob: String {
+        "\(native) \(english) \(meaning)".lowercased()
+    }
+}
+
+struct PantryMatch: Identifiable {
+    var recipe: Recipe
+    var have: [Ingredient]
+    var missing: [Ingredient]
+
+    var id: String { recipe.id }
+
+    var total: Int { max(recipe.ingredients.count, 1) }
+    var percent: Int { Int((Double(have.count) / Double(total) * 100).rounded()) }
 }
 
 enum KitchenUnits {

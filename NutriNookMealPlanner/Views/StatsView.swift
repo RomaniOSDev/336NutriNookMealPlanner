@@ -119,7 +119,7 @@ struct StatsView: View {
         chartCard(title: cuisineChartTitle) {
             Chart(cuisineSeries) { row in
                 BarMark(
-                    x: .value("Cuisine", row.label),
+                    x: .value("Kind", row.label),
                     y: .value("Count", row.value)
                 )
                 .foregroundStyle(Color("AppPrimary"))
@@ -229,7 +229,7 @@ struct StatsView: View {
     }
 
     private var cuisineChartTitle: String {
-        store.favorites.isEmpty ? "Recipe shelf by cuisine" : "Saved clippings by cuisine"
+        store.favorites.isEmpty ? "Catalog by kind" : "Saved dishes by kind"
     }
 
     private var weekSeries: [StatBar] {
@@ -255,16 +255,16 @@ struct StatsView: View {
     private var cuisineSeries: [StatBar] {
         let source: [Recipe]
         if store.favorites.isEmpty {
-            source = RecipeCatalog.recipes
+            source = store.allRecipes
         } else {
-            source = store.favorites.compactMap { RecipeCatalog.recipe(id: $0) }
+            source = store.favorites.compactMap { store.recipe(id: $0) }
         }
-        return Cuisine.allCases.map { cuisine in
+        return DishKind.allCases.map { kind in
             StatBar(
-                id: cuisine.rawValue,
-                label: cuisine.rawValue,
-                value: Double(source.filter { $0.cuisine == cuisine }.count),
-                series: "Cuisine"
+                id: kind.rawValue,
+                label: kind.title,
+                value: Double(source.filter { $0.kind == kind }.count),
+                series: "Kind"
             )
         }
     }

@@ -1,201 +1,152 @@
 import SwiftUI
 
-struct RecipeStudio: View {
+struct RecipeIndexView: View {
     @EnvironmentObject private var store: Store
-    var cuisineFilter: String
-    var searchText: String
-    var dinnerFilters: DinnerFilters
-    @Binding var pendingRecipeID: String?
-    @State private var openedRecipe: Recipe?
-    @State private var showOpened = false
+    @State private var searchText = ""
+    @State private var kindFilter: DishKind?
+    @State private var onlySaved = false
 
-    private var filteredRecipes: [Recipe] {
-        RecipeCatalog.recipes.filter { recipe in
-            let matchesCuisine: Bool
-            if cuisineFilter == "All" {
-                matchesCuisine = true
-            } else if cuisineFilter == "Saved" {
-                matchesCuisine = store.isFavorite(recipe.id)
-            } else {
-                matchesCuisine = recipe.cuisine.rawValue == cuisineFilter
-            }
-
+    private var filtered: [Recipe] {
+        store.allRecipes.filter { recipe in
+            if onlySaved && !store.isFavorite(recipe.id) { return false }
+            if let kindFilter, recipe.kind != kindFilter { return false }
             let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-            if query.isEmpty { return matchesCuisine }
+            if query.isEmpty { return true }
             let haystack = [
                 recipe.title,
-                recipe.cuisine.rawValue,
                 recipe.foreignName ?? "",
+                recipe.kind.title,
                 recipe.ingredients.map(\.name).joined(separator: " ")
             ].joined(separator: " ").lowercased()
-            return matchesCuisine && haystack.contains(query.lowercased())
-        }
-        .filter { recipe in
-            if dinnerFilters.quick && recipe.minutes > 30 { return false }
-            if dinnerFilters.vegetarian && !recipe.vegetarian { return false }
-            if dinnerFilters.glutenFree && !recipe.glutenFree { return false }
-            return true
+            return haystack.contains(query.lowercased())
         }
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if filteredRecipes.isEmpty {
-                    KitchenEmptyState(symbol: "book.fill", message: emptyMessage)
+        ZStack {
+            NookBackdrop()
+            VStack(spacing: 12) {
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundStyle(.secondary)
+                    TextField("Find a weeknight dish", text: $searchText)
+                        .font(Theme.rounded(.body))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background { Capsule().fill(Color("AppSurface")) }
+                .padding(.horizontal, 20)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        KitchenChip(title: "All", isSelected: kindFilter == nil && !onlySaved) {
+                            kindFilter = nil
+                            onlySaved = false
+                        }
+                        KitchenChip(title: "Saved", isSelected: onlySaved) {
+                            onlySaved = true
+                            kindFilter = nil
+                        }
+                        ForEach(DishKind.allCases) { kind in
+                            KitchenChip(title: kind.title, isSelected: kindFilter == kind) {
+                                kindFilter = kind
+                                onlySaved = false
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+
+                if filtered.isEmpty {
+                    KitchenEmptyState(symbol: "leaf.fill", message: "No dish matches. Loosen the filter or add your own on Desk.")
                 } else {
-                    List {
-                        ForEach(filteredRecipes) { recipe in
-                            ZStack(alignment: .leading) {
+                    ScrollView {
+                        VStack(spacing: 12) {
+                            ForEach(filtered) { recipe in
                                 NavigationLink {
                                     RecipeDetailView(recipe: recipe)
                                 } label: {
-                                    EmptyView()
+                                    DishLineCard(recipe: recipe, isFavorite: store.isFavorite(recipe.id))
                                 }
-                                .opacity(0)
-
-                                MagazineClippingCard(
-                                    recipe: recipe,
-                                    isFavorite: store.isFavorite(recipe.id)
-                                )
-                            }
-                            .contentShape(Rectangle())
-                            .listRowInsets(EdgeInsets(top: 10, leading: 18, bottom: 18, trailing: 18))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button {
-                                    store.toggleFavorite(recipe.id)
-                                } label: {
-                                    Image(systemName: store.isFavorite(recipe.id) ? "star.slash" : "star.fill")
-                                }
-                                .tint(Color("AppPrimary"))
+                                .buttonStyle(.plain)
                             }
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.bottom, 28)
                     }
-                    .listStyle(.plain)
-                    .kitchenClearChrome()
-                    .scrollDismissesKeyboard(.immediately)
+                    .scrollContentBackground(.hidden)
+                    .background(Color.clear)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.clear)
-            .toolbar(.hidden, for: .navigationBar)
-            .navigationDestination(isPresented: $showOpened) {
-                if let openedRecipe {
-                    RecipeDetailView(recipe: openedRecipe)
-                }
-            }
-            .onChange(of: pendingRecipeID) { _ in
-                openPendingRecipe()
-            }
-            .onAppear {
-                openPendingRecipe()
+            .padding(.top, 8)
+        }
+        .hidesAppDock()
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color("AppSurface"), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("Catalog")
+                    .font(Theme.rounded(.headline, weight: .bold))
             }
         }
-        .background(Color.clear)
-        .background(KitchenClearHost())
-    }
-
-    private func openPendingRecipe() {
-        guard let id = pendingRecipeID, let recipe = RecipeCatalog.recipe(id: id) else { return }
-        openedRecipe = recipe
-        showOpened = true
-        pendingRecipeID = nil
-    }
-
-    private var emptyMessage: String {
-        if dinnerFilters.quick || dinnerFilters.vegetarian || dinnerFilters.glutenFree {
-            return "No dish matches these dinner filters."
-        }
-        if cuisineFilter == "Saved" {
-            return "No saved clippings yet. Star a dish from the table."
-        }
-        return "No Recipes Yet"
     }
 }
 
-struct MagazineClippingCard: View {
+struct DishLineCard: View {
     let recipe: Recipe
     let isFavorite: Bool
 
-    private var tilt: Double {
-        let sum = recipe.id.unicodeScalars.reduce(0) { $0 + Int($1.value) }
-        return Double((sum % 5) - 2) * 0.7
-    }
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
-                Image(recipe.cuisine.bannerName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 168)
-                    .clipped()
-
-                LinearGradient(
-                    colors: [Color("AppBackground").opacity(0.05), Color("AppBackground").opacity(0.72)],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                HStack {
-                    Text(recipe.cuisine.rawValue.uppercased())
-                        .font(Theme.rounded(.caption, weight: .bold))
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background {
-                            Capsule().fill(Color("AppSurface").opacity(0.92))
-                        }
-                    Spacer()
-                    Text("\(recipe.minutes) min")
-                        .font(Theme.rounded(.caption, weight: .bold))
-                        .foregroundStyle(.primary)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background {
-                            Capsule().fill(Color("AppPrimary").opacity(0.9))
-                        }
-                }
-                .padding(12)
+        HStack(alignment: .center, spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Theme.plateFill)
+                Image(systemName: recipe.kind.symbol)
+                    .font(.system(size: 22, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
             }
+            .frame(width: 56, height: 56)
 
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 6) {
                     Text(recipe.title)
-                        .font(Theme.rounded(.title3, weight: .bold))
+                        .font(Theme.rounded(.body, weight: .bold))
                         .foregroundStyle(.primary)
                         .lineLimit(2)
                     if isFavorite {
-                        Image(systemName: "checkmark.circle.fill")
+                        Image(systemName: "star.fill")
                             .foregroundStyle(Color("AppAccent"))
-                            .accessibilityLabel("Saved")
+                    }
+                    if recipe.isCustom {
+                        Text("Yours")
+                            .font(Theme.rounded(.caption2, weight: .bold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background { Capsule().fill(Color("AppPrimary").opacity(0.25)) }
                     }
                 }
-                if let foreignName = recipe.foreignName {
-                    Text(foreignName)
-                        .font(Theme.rounded(.subheadline, weight: .medium))
+                if let foreign = recipe.foreignName {
+                    Text(foreign)
+                        .font(Theme.rounded(.caption, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
+                Text("\(recipe.kind.title) · \(recipe.minutes) min")
+                    .font(Theme.rounded(.caption, weight: .medium))
+                    .foregroundStyle(.secondary)
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color("AppSurface"))
+            Spacer()
         }
-        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-        .overlay(alignment: .top) {
-            WashiTape()
-                .offset(y: -7)
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .fill(Color("AppSurface").opacity(0.94))
         }
         .overlay {
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(Color("AppPrimary").opacity(0.18), lineWidth: 1)
         }
         .cheapPlateShadow()
-        .rotationEffect(.degrees(tilt))
-        .padding(.top, 8)
     }
 }
 
@@ -206,45 +157,51 @@ struct RecipeDetailView: View {
     @State private var noteText = ""
     @State private var showPlanPicker = false
 
+    private var match: PantryMatch {
+        store.pantryMatch(for: recipe)
+    }
+
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                banner
-                titleBlock
-                unitsRow
-                servingsRow
-                actionRow
-                if let marketNote {
-                    Text(marketNote)
-                        .font(Theme.rounded(.subheadline, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color("AppSurface"))
-                        }
+        ZStack {
+            NookBackdrop()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    hero
+                    titleBlock
+                    matchBlock
+                    unitsRow
+                    servingsRow
+                    actionRow
+                    if let marketNote {
+                        Text(marketNote)
+                            .font(Theme.rounded(.subheadline, weight: .semibold))
+                            .padding(12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background {
+                                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                    .fill(Color("AppSurface"))
+                            }
+                    }
+                    ingredientsBlock
+                    decoderBlock
+                    notesBlock
+                    stepsBlock
                 }
-                ingredientsBlock
-                substitutionBlock
-                translationBlock
-                staplesBlock
-                notesBlock
-                stepsBlock
+                .padding(.horizontal, 18)
+                .padding(.bottom, 28)
             }
-            .padding(.horizontal, 18)
-            .padding(.bottom, 28)
+            .scrollContentBackground(.hidden)
+            .background(Color.clear)
         }
-        .kitchenCanvas()
+        .hidesAppDock()
         .scrollDismissesKeyboard(.immediately)
         .dismissKeyboardOnTap()
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(Color("AppSurface"), for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .toolbar(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(recipe.cuisine.rawValue)
+                Text(recipe.kind.title)
                     .font(Theme.rounded(.headline, weight: .bold))
             }
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -273,38 +230,30 @@ struct RecipeDetailView: View {
         }
     }
 
-    private var banner: some View {
-        Image(recipe.cuisine.bannerName)
-            .resizable()
-            .scaledToFill()
-            .frame(maxWidth: .infinity)
-            .frame(height: 210)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay(alignment: .top) {
-                WashiTape().offset(y: -6)
+    private var hero: some View {
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(Theme.plateFill)
+                .frame(height: 168)
+            VStack(alignment: .leading, spacing: 8) {
+                DishKindBadge(kind: recipe.kind)
+                if let foreign = recipe.foreignName {
+                    Text(foreign)
+                        .font(Theme.rounded(.title2, weight: .bold))
+                        .foregroundStyle(.primary)
+                }
             }
-            .cheapPlateShadow()
-            .padding(.top, 12)
+            .padding(18)
+        }
+        .cheapPlateShadow()
+        .padding(.top, 12)
     }
 
     private var titleBlock: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(recipe.title)
-                    .font(Theme.rounded(.title, weight: .bold))
-                    .foregroundStyle(.primary)
-                if store.isFavorite(recipe.id) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(Color("AppAccent"))
-                }
-            }
-            if let foreignName = recipe.foreignName {
-                Text(foreignName)
-                    .font(Theme.rounded(.title3, weight: .medium))
-                    .foregroundStyle(.secondary)
-            }
-            Text("\(recipe.minutes) minutes at the stove")
+            Text(recipe.title)
+                .font(Theme.rounded(.title, weight: .bold))
+            Text("\(recipe.minutes) minutes · \(match.percent)% of the pantry already there")
                 .font(Theme.rounded(.subheadline, weight: .semibold))
                 .foregroundStyle(.secondary)
             HStack(spacing: 8) {
@@ -326,6 +275,25 @@ struct RecipeDetailView: View {
         }
     }
 
+    private var matchBlock: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if match.missing.isEmpty {
+                Text("Every ingredient is on hand.")
+                    .font(Theme.rounded(.subheadline, weight: .semibold))
+            } else {
+                Text("Buy \(match.missing.count): " + match.missing.map(\.name).joined(separator: ", "))
+                    .font(Theme.rounded(.subheadline, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color("AppSurface"))
+        }
+    }
+
     private var unitsRow: some View {
         HStack(spacing: 10) {
             KitchenChip(title: "Metric", isSelected: store.preferredMeasurementUnits == "metric") {
@@ -340,15 +308,9 @@ struct RecipeDetailView: View {
 
     private var servingsRow: some View {
         HStack(spacing: 10) {
-            KitchenChip(title: "2", isSelected: store.servings == 2) {
-                store.setServings(2)
-            }
-            KitchenChip(title: "4", isSelected: store.servings == 4) {
-                store.setServings(4)
-            }
-            KitchenChip(title: "6", isSelected: store.servings == 6) {
-                store.setServings(6)
-            }
+            KitchenChip(title: "2", isSelected: store.servings == 2) { store.setServings(2) }
+            KitchenChip(title: "4", isSelected: store.servings == 4) { store.setServings(4) }
+            KitchenChip(title: "6", isSelected: store.servings == 6) { store.setServings(6) }
             Text("plates")
                 .font(Theme.rounded(.subheadline, weight: .semibold))
                 .foregroundStyle(.secondary)
@@ -358,38 +320,31 @@ struct RecipeDetailView: View {
 
     private var actionRow: some View {
         VStack(spacing: 12) {
-            PlateActionButton(title: "Add to Market List", symbol: "basket.fill") {
+            PlateActionButton(title: match.missing.isEmpty ? "Nothing to buy" : "Add missing to the list", symbol: "basket.fill") {
                 let before = store.groceryItems.count
-                store.addMissingIngredients(from: recipe)
+                store.addMissingList(match.missing, recipeID: recipe.id)
                 if store.groceryItems.count == before {
-                    marketNote = "Nothing new to buy — pantry or the list already covers this dish."
+                    marketNote = "The list already covers this dish, or the pantry does."
                 } else {
-                    marketNote = "Missing ingredients copied to the market list. Pantry staples were skipped."
+                    marketNote = "Missing items landed on the week list."
                 }
             }
             NavigationLink {
                 CookFocusView(recipe: recipe)
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: "text.alignleft")
-                    Text("Cook at the stove")
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.85)
+                    Image(systemName: "flame.fill")
+                    Text("Cook this tonight")
                 }
                 .font(Theme.rounded(.headline, weight: .semibold))
                 .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 14)
-                .background {
-                    Capsule().fill(Theme.plateFill)
-                }
+                .background { Capsule().fill(Theme.plateFill) }
                 .cheapPlateShadow()
             }
             .buttonStyle(.plain)
             .frame(minHeight: 44)
-            PlateActionButton(title: "Start Cook Timer", symbol: "timer") {
-                store.startCookTimer(dishName: recipe.title, minutes: recipe.minutes)
-            }
             PlateActionButton(title: "Pin to week", symbol: "calendar") {
                 showPlanPicker = true
             }
@@ -403,13 +358,12 @@ struct RecipeDetailView: View {
             ForEach(recipe.ingredients) { ingredient in
                 HStack(alignment: .top, spacing: 10) {
                     Circle()
-                        .fill(Theme.plateFill)
+                        .fill(store.isOnHand(ingredient.name) ? Color("AppAccent") : Color("AppPrimary"))
                         .frame(width: 10, height: 10)
                         .padding(.top, 6)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(ingredient.name)
                             .font(Theme.rounded(.body, weight: .semibold))
-                            .foregroundStyle(.primary)
                         Text("\(KitchenUnits.display(ingredient.quantity, preference: store.preferredMeasurementUnits, servings: store.servings)) · \(ingredient.category.rawValue)")
                             .font(Theme.rounded(.caption, weight: .medium))
                             .foregroundStyle(.secondary)
@@ -418,12 +372,12 @@ struct RecipeDetailView: View {
                     Button {
                         store.togglePantry(ingredient.name)
                     } label: {
-                        Image(systemName: store.isInPantry(ingredient.name) ? "cabinet.fill" : "cabinet")
+                        Image(systemName: store.isInPantry(ingredient.name) ? "checkmark.circle.fill" : "circle")
                             .foregroundStyle(store.isInPantry(ingredient.name) ? Color("AppAccent") : Color("AppPrimary"))
                             .frame(width: 44, height: 44)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel(store.isInPantry(ingredient.name) ? "Remove from pantry" : "Keep in pantry")
+                    .accessibilityLabel(store.isInPantry(ingredient.name) ? "Remove from pantry" : "I have this")
                 }
                 .padding(10)
                 .background {
@@ -434,53 +388,23 @@ struct RecipeDetailView: View {
         }
     }
 
-    private var translationBlock: some View {
-        let pairs: [(String, String)] = recipe.ingredients.compactMap { ingredient in
-            guard let english = RecipeCatalog.englishName(for: ingredient.name) else { return nil }
-            if english.lowercased() == ingredient.name.lowercased() { return nil }
-            return (ingredient.name, english)
-        }
+    private var decoderBlock: some View {
+        let entries = recipe.ingredients.compactMap { RecipeCatalog.entry(for: $0.name) }
+        let unique = Dictionary(grouping: entries, by: \.native).compactMap(\.value.first)
         return Group {
-            if !pairs.isEmpty {
+            if !unique.isEmpty {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("Ingredient translation")
+                    Text("Decoder")
                         .font(Theme.rounded(.headline, weight: .bold))
-                    ForEach(pairs, id: \.0) { pair in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(pair.0)
+                    ForEach(unique) { entry in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("\(entry.native) · \(entry.english)")
                                 .font(Theme.rounded(.body, weight: .semibold))
-                            Text(pair.1)
-                                .font(Theme.rounded(.subheadline))
+                            Text(entry.meaning)
+                                .font(Theme.rounded(.caption, weight: .medium))
                                 .foregroundStyle(.secondary)
-                        }
-                        .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color("AppSurface"))
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private var substitutionBlock: some View {
-        let pairs: [(String, String)] = recipe.ingredients.compactMap { ingredient in
-            guard let swap = RecipeCatalog.substitution(for: ingredient.name) else { return nil }
-            return (ingredient.name, swap)
-        }
-        return Group {
-            if !pairs.isEmpty {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("If the shop doesn't have it")
-                        .font(Theme.rounded(.headline, weight: .bold))
-                    ForEach(pairs, id: \.0) { pair in
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(pair.0)
-                                .font(Theme.rounded(.body, weight: .semibold))
-                            Text(pair.1)
-                                .font(Theme.rounded(.subheadline))
+                            Text("Swap: \(entry.substitution)")
+                                .font(Theme.rounded(.caption, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
                         .padding(10)
@@ -499,7 +423,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Your notes")
                 .font(Theme.rounded(.headline, weight: .bold))
-            TextField("Less salt, kids eat this, last time it caught…", text: $noteText, axis: .vertical)
+            TextField("Less salt, kids ate this…", text: $noteText, axis: .vertical)
                 .font(Theme.rounded(.body))
                 .lineLimit(3...6)
                 .padding(12)
@@ -507,14 +431,6 @@ struct RecipeDetailView: View {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(Color("AppSurface"))
                 }
-        }
-    }
-
-    private var staplesBlock: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Pantry staples for \(recipe.cuisine.rawValue) cooking")
-                .font(Theme.rounded(.headline, weight: .bold))
-            FlexibleStapleRow(names: RecipeCatalog.staples(for: recipe.cuisine))
         }
     }
 
@@ -528,12 +444,10 @@ struct RecipeDetailView: View {
                         Circle().fill(Theme.plateFill)
                         Text("\(index + 1)")
                             .font(Theme.rounded(.caption, weight: .bold))
-                            .foregroundStyle(.primary)
                     }
                     .frame(width: 28, height: 28)
                     Text(step)
                         .font(Theme.rounded(.body))
-                        .foregroundStyle(.primary)
                 }
                 .padding(12)
                 .background {
@@ -545,40 +459,199 @@ struct RecipeDetailView: View {
     }
 }
 
-struct FlexibleStapleRow: View {
+struct RecipeEditorView: View {
     @EnvironmentObject private var store: Store
-    let names: [String]
+    @Environment(\.dismiss) private var dismiss
+    var existing: Recipe?
+
+    @State private var title = ""
+    @State private var foreignName = ""
+    @State private var minutes = 20
+    @State private var kind: DishKind = .bowl
+    @State private var vegetarian = false
+    @State private var glutenFree = true
+    @State private var ingredientName = ""
+    @State private var ingredientQty = ""
+    @State private var ingredientCategory: IngredientCategory = .pantry
+    @State private var ingredients: [Ingredient] = []
+    @State private var stepText = ""
+    @State private var steps: [String] = []
+    @State private var leftoverText = ""
+    @State private var leftoverHints: [String] = []
+    @State private var showValidation = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ForEach(names, id: \.self) { name in
-                Button {
-                    store.togglePantry(name)
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: store.isInPantry(name) ? "cabinet.fill" : "leaf.fill")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Color("AppAccent"))
-                        Text(displayName(name))
-                            .font(Theme.rounded(.subheadline, weight: .medium))
-                            .foregroundStyle(.primary)
-                        Spacer()
+        NavigationStack {
+            ZStack {
+                NookBackdrop()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        field("English name", text: $title)
+                        field("Native name (optional)", text: $foreignName)
+                        HStack {
+                            Text("Minutes")
+                                .font(Theme.rounded(.headline, weight: .bold))
+                            Spacer()
+                            Stepper("\(minutes)", value: $minutes, in: 5...180, step: 5)
+                        }
+                        Text("Kind")
+                            .font(Theme.rounded(.headline, weight: .bold))
+                        HStack {
+                            ForEach(DishKind.allCases) { item in
+                                KitchenChip(title: item.title, isSelected: kind == item) { kind = item }
+                            }
+                        }
+                        Toggle("Vegetarian", isOn: $vegetarian)
+                        Toggle("Gluten-free", isOn: $glutenFree)
+
+                        Text("Ingredients")
+                            .font(Theme.rounded(.headline, weight: .bold))
+                        ForEach(ingredients) { item in
+                            HStack {
+                                Text("\(item.name) · \(item.quantity)")
+                                    .font(Theme.rounded(.subheadline, weight: .semibold))
+                                Spacer()
+                                Button("Remove") {
+                                    ingredients.removeAll { $0.id == item.id }
+                                }
+                                .font(Theme.rounded(.caption, weight: .bold))
+                            }
+                        }
+                        field("Ingredient", text: $ingredientName)
+                        field("Quantity", text: $ingredientQty)
+                        HStack {
+                            ForEach(IngredientCategory.allCases) { item in
+                                KitchenChip(title: item.rawValue, isSelected: ingredientCategory == item) {
+                                    ingredientCategory = item
+                                }
+                            }
+                        }
+                        PlateActionButton(title: "Add ingredient", symbol: "plus") {
+                            let name = ingredientName.trimmingCharacters(in: .whitespacesAndNewlines)
+                            let qty = ingredientQty.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !name.isEmpty else { return }
+                            ingredients.append(Ingredient(name: name, category: ingredientCategory, quantity: qty.isEmpty ? "to taste" : qty))
+                            ingredientName = ""
+                            ingredientQty = ""
+                        }
+
+                        Text("Steps")
+                            .font(Theme.rounded(.headline, weight: .bold))
+                        ForEach(Array(steps.enumerated()), id: \.offset) { index, step in
+                            HStack(alignment: .top) {
+                                Text("\(index + 1). \(step)")
+                                    .font(Theme.rounded(.subheadline))
+                                Spacer()
+                                Button("Remove") { steps.remove(at: index) }
+                                    .font(Theme.rounded(.caption, weight: .bold))
+                            }
+                        }
+                        field("Next step", text: $stepText)
+                        PlateActionButton(title: "Add step", symbol: "plus") {
+                            let trimmed = stepText.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !trimmed.isEmpty else { return }
+                            steps.append(trimmed)
+                            stepText = ""
+                        }
+
+                        Text("Leftovers this dish often leaves")
+                            .font(Theme.rounded(.headline, weight: .bold))
+                        ForEach(leftoverHints, id: \.self) { hint in
+                            HStack {
+                                Text(hint)
+                                Spacer()
+                                Button("Remove") { leftoverHints.removeAll { $0 == hint } }
+                                    .font(Theme.rounded(.caption, weight: .bold))
+                            }
+                        }
+                        field("Leftover name", text: $leftoverText)
+                        PlateActionButton(title: "Add leftover hint", symbol: "plus") {
+                            let trimmed = leftoverText.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !trimmed.isEmpty else { return }
+                            leftoverHints.append(trimmed)
+                            leftoverText = ""
+                        }
+
+                        if showValidation {
+                            Text("Need a title, at least one ingredient, and one step.")
+                                .font(Theme.rounded(.caption, weight: .bold))
+                        }
+
+                        PlateActionButton(title: "Save dish", symbol: "checkmark") {
+                            save()
+                        }
                     }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
-                    .background {
-                        Capsule().fill(Color("AppSurface"))
-                    }
+                    .padding(20)
+                    .padding(.bottom, 28)
                 }
-                .buttonStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
+            .dismissKeyboardOnTap()
+            .scrollDismissesKeyboard(.immediately)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text(existing == nil ? "Your dish" : "Edit dish")
+                        .font(Theme.rounded(.headline, weight: .bold))
+                }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                        .font(Theme.rounded(.body, weight: .semibold))
+                }
+            }
+            .onAppear { loadExisting() }
+        }
+        .hidesAppDock()
+    }
+
+    private func field(_ title: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(title)
+                .font(Theme.rounded(.headline, weight: .bold))
+            TextField(title, text: text)
+                .font(Theme.rounded(.body))
+                .padding(12)
+                .background {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color("AppSurface"))
+                }
         }
     }
 
-    private func displayName(_ name: String) -> String {
-        if let english = RecipeCatalog.englishName(for: name) {
-            return "\(name) — \(english)"
+    private func loadExisting() {
+        guard let existing else { return }
+        title = existing.title
+        foreignName = existing.foreignName ?? ""
+        minutes = existing.minutes
+        kind = existing.kind
+        vegetarian = existing.vegetarian
+        glutenFree = existing.glutenFree
+        ingredients = existing.ingredients
+        steps = existing.steps
+        leftoverHints = existing.leftoverHints
+    }
+
+    private func save() {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty, !ingredients.isEmpty, !steps.isEmpty else {
+            showValidation = true
+            return
         }
-        return name
+        let recipe = Recipe(
+            id: existing?.id ?? "user-\(UUID().uuidString)",
+            title: trimmedTitle,
+            kind: kind,
+            minutes: minutes,
+            ingredients: ingredients,
+            steps: steps,
+            foreignName: foreignName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : foreignName,
+            vegetarian: vegetarian,
+            glutenFree: glutenFree,
+            leftoverHints: leftoverHints,
+            isCustom: true
+        )
+        store.upsertCustomRecipe(recipe)
+        dismiss()
     }
 }
