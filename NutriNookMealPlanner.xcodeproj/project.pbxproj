@@ -23,8 +23,11 @@
 		91F094FCF3554EBB5D3B0777 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4C20EB6BA5D0A71846960FE /* SettingsView.swift */; };
 		95C2014DF8B5EBCE633E9051 /* GroceryStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1DAA8A8E243926F5F4E560 /* GroceryStudio.swift */; };
 		9D4B7C21E8A0465B9F1D2E73 /* PlanStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C1A8E04B9D2471F8A3C5E90 /* PlanStudio.swift */; };
+		A7E3B1C94F2D8160E5A93B21 /* StartAppKit in Frameworks */ = {isa = PBXBuildFile; productRef = B4FA28D6BE9458D7FC10A298 /* StartAppKit */; };
 		AEE26840E2318D4AE2FC52AE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 2C44B440755B5EC6F4B55ACA /* PrivacyInfo.xcprivacy */; };
+		D0B6E4F27A501493B8DC6E54 /* StartAppSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8F4C2D05E3E9271F6BA4C32 /* StartAppSecrets.swift */; };
 		DAAF8BB245E1E87BD67402AB /* RecipeStudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = C57A71F61DC5D7036F817235 /* RecipeStudio.swift */; };
+		E1C7F5A38B6125A4C9ED7F65 /* StartAppConfiguration+App.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A5D3E16F4F0382A7CB5D43 /* StartAppConfiguration+App.swift */; };
 		F2CA63175FF87D1D9C4BB710 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 449B8B505D438C96C2A36ECF /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -46,8 +49,10 @@
 		AE105026CD251CF17512DC88 /* TimerStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerStudio.swift; sourceTree = "<group>"; };
 		B1F8C7FA73996EDD64B021A0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		B33F57B8C92C62342CB89FF3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B8F4C2D05E3E9271F6BA4C32 /* StartAppSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartAppSecrets.swift; sourceTree = "<group>"; };
 		BDD6FB042180C5DAAE1E5560 /* Store.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Store.swift; sourceTree = "<group>"; };
 		C57A71F61DC5D7036F817235 /* RecipeStudio.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeStudio.swift; sourceTree = "<group>"; };
+		C9A5D3E16F4F0382A7CB5D43 /* StartAppConfiguration+App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StartAppConfiguration+App.swift"; sourceTree = "<group>"; };
 		D04FF0E19B45765FF1BDEF46 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		D4C20EB6BA5D0A71846960FE /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		E77EBBA7996C2873ABEF9176 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -60,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7E3B1C94F2D8160E5A93B21 /* StartAppKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,10 +192,20 @@
 				40D42D19D970D70B7F3B7A8D /* Navigation */,
 				1075E3E0A3A4DC4C8997C953 /* Persistence */,
 				7F3B35063090679E7AE0CCDF /* Resources */,
+				F2D806B49C7236B5DAFE8076 /* StartApp */,
 				91C01517A74203112A755583 /* Theme */,
 				A5E8E0205B28776E68F56D8C /* Views */,
 			);
 			path = NutriNookMealPlanner;
+			sourceTree = "<group>";
+		};
+		F2D806B49C7236B5DAFE8076 /* StartApp */ = {
+			isa = PBXGroup;
+			children = (
+				B8F4C2D05E3E9271F6BA4C32 /* StartAppSecrets.swift */,
+				C9A5D3E16F4F0382A7CB5D43 /* StartAppConfiguration+App.swift */,
+			);
+			path = StartApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -209,6 +225,9 @@
 			dependencies = (
 			);
 			name = NutriNookMealPlanner;
+			packageProductDependencies = (
+				B4FA28D6BE9458D7FC10A298 /* StartAppKit */,
+			);
 			productName = NutriNookMealPlanner;
 			productReference = 1C9FC960F9767DC1DDB91C66 /* NutriNookMealPlanner.app */;
 			productType = "com.apple.product-type.application";
@@ -237,6 +256,9 @@
 				Base,
 			);
 			mainGroup = 6230C8DBA68E8B5B9646C017;
+			packageReferences = (
+				A3E917C5AD8347C6EB0F9187 /* XCLocalSwiftPackageReference "Packages/StartAppKit" */,
+			);
 			productRefGroup = 26C642BB4180B1E95062FF1D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -292,6 +314,8 @@
 			files = (
 				8E87474C0FFB2842B38D3F2A /* AppDelegate.swift in Sources */,
 				184E4B1F8CEE46B13B826339 /* SceneDelegate.swift in Sources */,
+				D0B6E4F27A501493B8DC6E54 /* StartAppSecrets.swift in Sources */,
+				E1C7F5A38B6125A4C9ED7F65 /* StartAppConfiguration+App.swift in Sources */,
 				549BD990FD1A2914565F6C5F /* RecipeCatalog.swift in Sources */,
 				21389671955A9F5994304B22 /* Models.swift in Sources */,
 				09B9AA7CC8B155E3E26E13AA /* AppLinks.swift in Sources */,
@@ -378,13 +402,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "NutriNook Meal Planner";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mil.n8tr1n00km35lpl8nn3r;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -410,13 +433,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "NutriNook Meal Planner";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.mil.n8tr1n00km35lpl8nn3r;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -504,6 +526,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		A3E917C5AD8347C6EB0F9187 /* XCLocalSwiftPackageReference "Packages/StartAppKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/StartAppKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B4FA28D6BE9458D7FC10A298 /* StartAppKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A3E917C5AD8347C6EB0F9187 /* XCLocalSwiftPackageReference "Packages/StartAppKit" */;
+			productName = StartAppKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5E4C1FB6EDB5507D26E45FCA /* Project object */;
 }

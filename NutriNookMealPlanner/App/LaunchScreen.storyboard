@@ -4,6 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="22130"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -11,11 +12,55 @@
         <scene sceneID="ls1">
             <objects>
                 <viewController id="LAUNCH" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="lv1">
+                    <view key="view" clipsSubviews="YES" contentMode="scaleToFill" id="lv1">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="blobPrimary" userLabel="Primary Blob">
+                                <rect key="frame" x="198" y="-80" width="300" height="300"/>
+                                <color key="backgroundColor" red="0.854" green="0.446" blue="0.432" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <real key="value" value="150"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="300" id="bpw"/>
+                                    <constraint firstAttribute="height" constant="300" id="bph"/>
+                                </constraints>
+                            </view>
+                            <view clipsSubviews="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="blobAccent" userLabel="Accent Blob">
+                                <rect key="frame" x="-90" y="560" width="220" height="220"/>
+                                <color key="backgroundColor" red="0.851" green="0.467" blue="0.424" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <real key="value" value="110"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="220" id="baw"/>
+                                    <constraint firstAttribute="height" constant="220" id="bah"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="NutriNook" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" translatesAutoresizingMaskIntoConstraints="NO" id="titleLabel">
+                                <rect key="frame" x="57" y="424" width="300" height="48"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle0"/>
+                                <color key="textColor" red="0.18" green="0.1" blue="0.08" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
                         <viewLayoutGuide key="safeArea" id="lsg1"/>
-                        <color key="backgroundColor" red="0.12" green="0.12" blue="0.14" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" name="AppBackground"/>
+                        <constraints>
+                            <constraint firstItem="blobPrimary" firstAttribute="centerX" secondItem="lv1" secondAttribute="centerX" multiplier="1.55" id="bpcx"/>
+                            <constraint firstItem="blobPrimary" firstAttribute="centerY" secondItem="lv1" secondAttribute="centerY" multiplier="0.25" id="bpcy"/>
+                            <constraint firstItem="blobAccent" firstAttribute="centerX" secondItem="lv1" secondAttribute="centerX" multiplier="0.35" id="bacx"/>
+                            <constraint firstItem="blobAccent" firstAttribute="centerY" secondItem="lv1" secondAttribute="centerY" multiplier="1.55" id="bacy"/>
+                            <constraint firstItem="titleLabel" firstAttribute="centerX" secondItem="lv1" secondAttribute="centerX" id="tlcx"/>
+                            <constraint firstItem="titleLabel" firstAttribute="centerY" secondItem="lv1" secondAttribute="centerY" id="tlcy"/>
+                            <constraint firstItem="titleLabel" firstAttribute="leading" relation="greaterThanOrEqual" secondItem="lsg1" secondAttribute="leading" constant="24" id="tll"/>
+                            <constraint firstItem="lsg1" firstAttribute="trailing" relation="greaterThanOrEqual" secondItem="titleLabel" secondAttribute="trailing" constant="24" id="tlr"/>
+                        </constraints>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="lfr1" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -23,4 +68,9 @@
             <point key="canvasLocation" x="0" y="0"/>
         </scene>
     </scenes>
+    <resources>
+        <namedColor name="AppBackground">
+            <color red="0.835" green="0.478" blue="0.369" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
+    </resources>
 </document>

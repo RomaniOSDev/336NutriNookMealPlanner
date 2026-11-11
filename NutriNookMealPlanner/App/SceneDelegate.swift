@@ -1,16 +1,17 @@
 import UIKit
 import SwiftUI
+import StartAppKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
+    private var startAppResolver: StartAppResolver?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
-        guard let windowScene = (scene as? UIWindowScene) else {return}
+        guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
-        let host = UIHostingController(rootView: ContentView())
-        host.view.backgroundColor = .clear
         window?.backgroundColor = UIColor(named: "AppBackground")
-        window?.rootViewController = host
+        startAppResolver = StartAppResolver(window: window, configuration: .app)
+        window?.rootViewController = startAppResolver?.resolveEntryViewController()
         window?.makeKeyAndVisible()
     }
 
